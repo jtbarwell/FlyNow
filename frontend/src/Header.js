@@ -323,7 +323,7 @@ function Header() {
             <div className="container-fluid d-flex flex-wrap justify-content-center">
                 <Link to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
                     <svg className="bi me-2" width="40" height="32"><use xlinkHref="#bootstrap" /></svg>
-                    <span className="fs-3">Fantasy Baseball Dashboard</span>
+                    <span className="fs-3">FlyNow</span>
                 </Link>
 
                 
