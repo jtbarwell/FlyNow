@@ -16,6 +16,15 @@ import ConfirmBookingPage from './PageFolders/ConfirmBookingPageFolder/ConfirmBo
 
 // Main App Component -------------------------------------------------------------------------------------
 function App() {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        // Check if the user is logged in (you can replace this with your actual login check logic)
+        const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
+        setIsLoggedIn(loggedInStatus);
+    }, []);
+
+    
     return (
         <Router>
             <Header />
