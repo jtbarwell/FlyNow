@@ -85,10 +85,6 @@ export default function SearchPage() {
   );
 }
 
-function nav_to_login() {
-    window.location.href = "/login";
-}
-
 function nav_to_search() {
     window.location.href = "/search";
 }

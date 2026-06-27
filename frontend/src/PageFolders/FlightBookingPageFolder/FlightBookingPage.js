@@ -54,14 +54,6 @@ export default function FlightBookingPage() {
   );
 }
 
-function nav_to_login() {
-    window.location.href = "/login";
-}
-
-function nav_to_search() {
-    window.location.href = "/search";
-}
-
 function nav_to_review_booking() {
     window.location.href = "/review-booking";
 }
