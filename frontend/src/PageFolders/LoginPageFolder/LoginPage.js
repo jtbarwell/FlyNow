@@ -12,18 +12,35 @@ export default function LoginPage() {
         setPassword(e.target.value);
     }
 
-    function login() {
-        // Implement login logic here
+    async function login() {
+        // Empty field error handling
         if (username === '' || password === '') {
             alert("Please enter both username and password.");
             return;
         }
         
-        if (username === 'testuser' && password === 'password123') {
-            alert("Login successful!");
+        // Send login request to the backend
+        try {
+            const res = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            
+            if (!data.valid) {
+                alert("Invalid username or password. Please try again.");
+            } else {
+                localStorage.setItem('isLoggedIn', 'true'); // Set login status in local storage
+                localStorage.setItem('username', username); // Store the username in local storage
+                window.location.href = "/"; // Redirect to home page after login
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
         }
-        console.log("Login button clicked");
-        window.location.href = "/"; // Redirect to home page after login
     }
 
     return (
@@ -47,6 +64,7 @@ export default function LoginPage() {
                 <div className="sign-up-button" onClick={nav_to_signup}>
                     <button>Sign Up</button>
                 </div>
+
             </div>
             
         </div>
