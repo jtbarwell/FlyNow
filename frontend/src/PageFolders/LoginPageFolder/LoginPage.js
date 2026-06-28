@@ -21,6 +21,8 @@ export default function LoginPage() {
         
         if (username === 'testuser' && password === 'password123') {
             alert("Login successful!");
+            localStorage.setItem('username', username);
+            localStorage.setItem('isLoggedIn', 'true');
         }
         console.log("Login button clicked");
         window.location.href = "/"; // Redirect to home page after login
