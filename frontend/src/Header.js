@@ -76,7 +76,14 @@ function Header() {
         }));
     };
 
-
+    const profile_click = () => {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        if (isLoggedIn === 'true') {
+            window.location.href = "/profile";
+        } else {
+            window.location.href = "/login";
+        }
+    };
 
     return (
         <header className="d-flex py-3 mb-4 border-bottom bg-light">
@@ -115,6 +122,8 @@ function Header() {
                     <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2"></i></button>
                 </Link>
 	            
+
+	            <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2" onClick={profile_click}></i></button>
 
             </div>
         </header>

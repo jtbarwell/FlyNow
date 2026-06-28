@@ -1,98 +1,193 @@
 import React, { useEffect, useState } from 'react';
 
 export default function SearchPage() {
+    const [origin, setOrigin] = useState('');
+    const [destination, setDestination] = useState('');
+    const [trip_type, setTripType] = useState('');
+    const [departure_date, setDepartureDate] = useState('');
+    const [return_date, setReturnDate] = useState('');
+    const [traveller_count, setTravellerCount] = useState(1);
+    const [searchResults, setSearchResults] = useState([]);
 
+    // Call the API to get the search results based on the search parameters stored in local storage
+    useEffect(() => {
+        const init = async () => {
+            const savedOrigin = localStorage.getItem('origin') || '';
+            const savedDestination = localStorage.getItem('destination') || '';
+            const savedTripType = localStorage.getItem('trip_type') || '';
+            const savedDepartureDate = localStorage.getItem('departure_date') || '';
+            const savedReturnDate = localStorage.getItem('return_date') || '';
+            const savedTravellerCount = localStorage.getItem('traveller_count') || '1';
 
-  return (
-    <div className="text-center">
-        <h1 className="display-4">Welcome</h1>
-        <p>This is the search page where you can see all the flights that match your searches!</p>
+            setOrigin(savedOrigin);
+            setDestination(savedDestination);
+            setTripType(savedTripType);
+            setDepartureDate(savedDepartureDate);
+            setReturnDate(savedReturnDate);
+            setTravellerCount(Number(savedTravellerCount));
 
-        <div className="back-panel">
-            <div className ="search-menu">
-                <div className="start-airport-input">
-                    <p>From</p>
-                    <input type="text" placeholder="Here" />
-                </div>
-                <div className="destination-airport-input">
-                    <p>To</p>
-                    <input type="text" placeholder="There" />
-                </div>
+            await processSearch({
+                origin: savedOrigin,
+                destination: savedDestination,
+                trip_type: savedTripType,
+                departure_date: savedDepartureDate,
+                return_date: savedReturnDate,
+                traveller_count: Number(savedTravellerCount)
+            });
+        };
 
-                <div className="trip-type-input">
-                    <p>Trip Type</p>
-                    <select>
-                        <option>One Way</option>
-                        <option>Round Trip</option>
-                    </select>
-                </div>
+        init();
+    }, []);
 
-                <div className="departure-date-input">
-                    <p>Departure Date</p>
-                    <input type="date"/>
-                </div>
-                <div className="return-date-input">
-                    <p>Return Date</p>
-                    <input type="date"/>
-                </div>
-                <div className="traveller-count-input">
-                    <p>Traveller Count</p>
-                    <input type="number" min="1" defaultValue="1"/>
-                </div>
-                <div className="search-flights-button" onClick={nav_to_search}>
-                    <button>Search Flights</button>
-                </div>
-            </div>
-            <div className="search-results">
-                <h2>Search Results</h2>
-                <p>Here you will see all the flights that match your search criteria!</p>
-                
-                <div className="round-trip-flight-result" onClick={nav_to_flight_booking}>
-                    <div className="object-panel">
+    async function processSearch(overrides = {}) {
+        const payload = {
+            origin: overrides.origin ?? origin,
+            destination: overrides.destination ?? destination,
+            trip_type: overrides.trip_type ?? trip_type,
+            departure_date: overrides.departure_date ?? departure_date,
+            return_date: overrides.return_date ?? return_date,
+            traveller_count: overrides.traveller_count ?? traveller_count
+        };
+        // Call the API to get the search results based on the search parameters
+        try {
+            const res = await fetch("http://localhost:3001/api/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            })
+            const data = await res.json();
+            setSearchResults(data);
+            console.log("Search results:", data);
+        } catch (error) {
+            console.error('Error during search:', error);
+        }
+    }
+
+    function ResultsPanel() {
+        if (!searchResults || searchResults.length === 0) return null;
+        var resultsHTML = [];
+        if (trip_type === "one-way") {
+            for (let i = 0; i < searchResults.length; i++) {
+                const dep_time = new Date(searchResults[i].departureTime);
+                const arr_time = new Date(searchResults[i].arrivalTime);
+                const format_dep_time = dep_time.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric', 
+                    hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
+                });
+                const format_arr_time = arr_time.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
+                });
+
+                resultsHTML.push(
+                    <div key={i} className="one-way-flight-result object-panel" onClick={() => selectTrip(i)}>
                         <div className="flight-info">
-                            <p>Flight: AC317</p>
-                            <h5>9:40 AM - 11:55 AM</h5>
+                            <p>Flight: {searchResults[i].name}</p>
+                            <h5>{format_dep_time} - {format_arr_time}</h5>
                             <p>Direct</p>
                         </div>
-                        <hr></hr>
-                        <div className="flight-info">
-                            <p>Flight: AC270 - AC318</p>
-                            <h5>10:10 PM - 12:00 PM</h5>
-                            <p>1-stop</p>
-                        </div>
                         <div className="trip-price">
-                            <p>$1790</p>
+                            <p>${searchResults[i].price.economy.toFixed(2)}</p>
+                        </div>
+                        <br></br>
+                    </div>
+                );
+                resultsHTML.push(<br></br>);
+            }
+        }
+        return resultsHTML;
+    }
+
+    const selectTrip = (index) => {
+        const flight = searchResults[index];
+        localStorage.setItem('flightData', JSON.stringify(flight));
+        window.location.href = "/flight-booking";
+    }
+
+    const handleOriginChange = (e) => {setOrigin(e.target.value);}
+    const handleDestinationChange = (e) => {setDestination(e.target.value);}
+    const handleTripTypeChange = (e) => {setTripType(e.target.value);}
+    const handleDepartureDateChange = (e) => {setDepartureDate(e.target.value);}
+    const handleReturnDateChange = (e) => {setReturnDate(e.target.value);}
+    const handleTravellerCountChange = (e) => {setTravellerCount(e.target.value);}
+
+    return (
+        <div className="text-center">
+            <h1 className="display-4">Welcome</h1>
+            <p>This is the search page where you can see all the flights that match your searches!</p>
+
+            <div className="back-panel">
+                <div className ="search-menu">
+                    <div className="origin-airport-input">
+                        <p>From</p>
+                        <input type="text" placeholder="Here" onChange={handleOriginChange} />
+                    </div>
+                    <div className="destination-airport-input">
+                        <p>To</p>
+                        <input type="text" placeholder="There" onChange={handleDestinationChange} />
+                    </div>
+
+                    <div className="trip-type-input">
+                        <p>Trip Type</p>
+                        <select onChange={handleTripTypeChange}>
+                            <option value="one-way">One Way</option>
+                            <option value="round-trip">Round Trip</option>
+                        </select>
+                    </div>
+
+                    <div className="departure-date-input">
+                        <p>Departure Date</p>
+                        <input type="date" onChange={handleDepartureDateChange} />
+                    </div>
+                    <div className="return-date-input">
+                        <p>Return Date</p>
+                        <input type="date" onChange={handleReturnDateChange} />
+                    </div>
+                    <div className="traveller-count-input">
+                        <p>Traveller Count</p>
+                        <input type="number" min="1" defaultValue="1" onChange={handleTravellerCountChange} />
+                    </div>
+                    <div className="search-flights-button" onClick={async () => await processSearch()}>
+                        <button>Search Flights</button>
+                    </div>
+                </div>
+                <hr></hr>
+                <div className="search-results">
+                    <ResultsPanel />
+                    <div className="round-trip-flight-result" onClick={() => selectTrip(1)}>
+                        <div className="object-panel">
+                            <div className="flight-info">
+                                <p>Flight: AC317</p>
+                                <h5>9:40 AM - 11:55 AM</h5>
+                                <p>Direct</p>
+                            </div>
+                            <hr></hr>
+                            <div className="flight-info">
+                                <p>Flight: AC270 - AC318</p>
+                                <h5>10:10 PM - 12:00 PM</h5>
+                                <p>1-stop</p>
+                            </div>
+                            <div className="trip-price">
+                                <p>$1790</p>
+                            </div>
+                        </div>
+                    </div>
+                    <br></br>
+                    <div className="one-way-flight-result" onClick={() => selectTrip(1)}>
+                        <div className="object-panel">
+                            <div className="flight-info">  
+                                <p>Flight: AC317</p>
+                                <h5>9:40 AM - 11:55 AM</h5>
+                                <p>Direct</p>
+                            </div>
+                            <div className="trip-price">
+                                <p>$920</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <br></br>
-                <div className="one-way-flight-result" onClick={nav_to_flight_booking}>
-                    <div className="object-panel">
-                        <div className="flight-info">  
-                            <p>Flight: AC317</p>
-                            <h5>9:40 AM - 11:55 AM</h5>
-                            <p>Direct</p>
-                        </div>
-                        <div className="trip-price">
-                            <p>$920</p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
-    </div>
-  );
-}
-
-function nav_to_login() {
-    window.location.href = "/login";
-}
-
-function nav_to_search() {
-    window.location.href = "/search";
-}
-
-function nav_to_flight_booking() {
-    window.location.href = "/flight-booking";
+    );
 }

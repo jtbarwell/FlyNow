@@ -65,10 +65,6 @@ export default function ReviewBookingPage() {
   );
 }
 
-function nav_to_login() {
-    window.location.href = "/login";
-}
-
 function nav_to_confirm_booking() {
     window.location.href = "/confirm-booking";
 }

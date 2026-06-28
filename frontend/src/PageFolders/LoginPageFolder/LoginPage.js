@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from 'react';
 
 export default function LoginPage() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleUsernameChange = (e) => {
-        setUsername(e.target.value);
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
     }
 
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     }
 
-    function login() {
-        // Implement login logic here
-        if (username === '' || password === '') {
-            alert("Please enter both username and password.");
+    async function login() {
+        // Empty field error handling
+        if (email === '' || password === '') {
+            alert("Please enter both email and password.");
             return;
         }
         
@@ -23,9 +23,29 @@ export default function LoginPage() {
             alert("Login successful!");
             localStorage.setItem('username', username);
             localStorage.setItem('isLoggedIn', 'true');
+        // Send login request to the backend
+        try {
+            const res = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include",
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            
+            if (!data.valid) {
+                alert("Invalid email or password. Please try again.");
+            } else {
+                localStorage.setItem('isLoggedIn', 'true'); // Set login status in local storage
+                localStorage.setItem('email', email); // Store the email in local storage
+                window.location.href = "/"; // Redirect to home page after login
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
         }
-        console.log("Login button clicked");
-        window.location.href = "/"; // Redirect to home page after login
     }
 
     return (
@@ -36,7 +56,7 @@ export default function LoginPage() {
             <div className="back-panel">
                 <div className="username-input">
                     <p>Username/Email Address</p>
-                    <input type="text" placeholder="Enter your username or email" onChange={handleUsernameChange} />
+                    <input type="text" placeholder="Enter your username or email" onChange={handleEmailChange} />
                 </div>
                 <div className="password-input">
                     <p>Password</p>
@@ -49,6 +69,7 @@ export default function LoginPage() {
                 <div className="sign-up-button" onClick={nav_to_signup}>
                     <button>Sign Up</button>
                 </div>
+
             </div>
             
         </div>
