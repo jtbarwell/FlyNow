@@ -76,13 +76,10 @@ function Header() {
         }));
     };
 
-    const profile_click = () => {
+    const accountClick = () => {
         const isLoggedIn = localStorage.getItem('isLoggedIn');
-        if (isLoggedIn === 'true') {
-            window.location.href = "/profile";
-        } else {
-            window.location.href = "/login";
-        }
+        if (isLoggedIn === 'true') {return "/account";}
+        else {return "/login";}
     };
 
     return (
@@ -118,12 +115,10 @@ function Header() {
 
 
 
-                <Link to={'/account'} className={`nav-link ${location.pathname === '/account' ? 'active' : ''}`}>
+                <Link to={accountClick()} className={`nav-link ${location.pathname === '/account' ? 'active' : ''}`}>
                     <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2"></i></button>
                 </Link>
-	            
-
-	            <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2" onClick={profile_click}></i></button>
+	
 
             </div>
         </header>

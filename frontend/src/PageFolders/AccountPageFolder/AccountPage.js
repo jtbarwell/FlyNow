@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 
 export default function AccountPage() {
 
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
 
     useEffect(() => {
-        const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername);
+        const storedEmail = localStorage.getItem('email');
+        if (storedEmail) {
+            setEmail(storedEmail);
         }
     }, []); 
 
@@ -17,7 +17,7 @@ export default function AccountPage() {
 
   return (
     <div className="text-center">
-        <h1 className="display-4">Good Morning, {username}</h1>
+        <h1 className="display-4">Good Morning, {email}</h1>
         <p>This is the account page where you can manage your account settings and view your booking history.</p>
 
         <div className="back-panel">

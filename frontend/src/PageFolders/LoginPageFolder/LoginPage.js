@@ -19,10 +19,6 @@ export default function LoginPage() {
             return;
         }
         
-        if (username === 'testuser' && password === 'password123') {
-            alert("Login successful!");
-            localStorage.setItem('username', username);
-            localStorage.setItem('isLoggedIn', 'true');
         // Send login request to the backend
         try {
             const res = await fetch('http://localhost:3001/api/login', {
