@@ -33,12 +33,6 @@ await udb.read();
 await bdb.read();
 await fdb.read();
 
-// HELPER FUNCTIONS
-
-function isValid(res, valid) {
-  return res.json({ valid });
-}
-
 // LOGIN
 
 function login(email, password) {
@@ -51,14 +45,14 @@ app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   const user = login(email, password);
   if (user) req.session.user = user;
-  isValid(res, user);
+  return res.json({ valid: !!user });
 });
 
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy((err) => {
-    isValid(res, !err);
+    return res.json({ valid: !err });
   });
 });
 
@@ -82,7 +76,7 @@ async function signup(email, password) {
 app.post('/api/signup', async (req, res) => {
   const { email, password } = req.body;
   const valid = await signup(email, password);
-  isValid(res, valid);
+  return res.json({ valid });
 });
 
 // SEARCH
@@ -105,7 +99,7 @@ function bookingStart(req, flightID) {
     bookingID: bdb.data.bookings.length,
     userID: req.session.user.userID,
     flightID: flightID,
-    travellers = []
+    travellers: []
   };
 
   return booking;
