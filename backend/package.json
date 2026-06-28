@@ -4,10 +4,13 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "express-session": "^1.17.3",
+    "cors": "^2.8.6",
+    "express": "^4.22.2",
+    "express-session": "^1.19.0",
     "lowdb": "^7.0.1"
+  },
+  "scripts": {
+    "start": "node index.js"
   },
   "author": "Group 5"
 }
