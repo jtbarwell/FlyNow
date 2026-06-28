@@ -61,7 +61,6 @@ export default function SearchPage() {
             console.log("Search results:", data);
         } catch (error) {
             console.error('Error during search:', error);
-            //if (fromHomePage) {window.location.href = "/";} // Redirect to home page if there's an error
         }
     }
 
@@ -70,8 +69,8 @@ export default function SearchPage() {
         var resultsHTML = [];
         if (trip_type === "one-way") {
             for (let i = 0; i < searchResults.length; i++) {
-                const dep_time = new Date(searchResults[i].departure_time);
-                const arr_time = new Date(searchResults[i].arrival_time);
+                const dep_time = new Date(searchResults[i].departureTime);
+                const arr_time = new Date(searchResults[i].arrivalTime);
                 const format_dep_time = dep_time.toLocaleString('en-US', {
                     year: 'numeric', month: 'short', day: 'numeric', 
                     hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
@@ -89,7 +88,7 @@ export default function SearchPage() {
                             <p>Direct</p>
                         </div>
                         <div className="trip-price">
-                            <p>${searchResults[i].price.toFixed(2)}</p>
+                            <p>${searchResults[i].price.economy.toFixed(2)}</p>
                         </div>
                         <br></br>
                     </div>
@@ -149,7 +148,7 @@ export default function SearchPage() {
                         <p>Traveller Count</p>
                         <input type="number" min="1" defaultValue="1" onChange={handleTravellerCountChange} />
                     </div>
-                    <div className="search-flights-button" onClick={async () => await processSearch(false)}>
+                    <div className="search-flights-button" onClick={async () => await processSearch()}>
                         <button>Search Flights</button>
                     </div>
                 </div>
