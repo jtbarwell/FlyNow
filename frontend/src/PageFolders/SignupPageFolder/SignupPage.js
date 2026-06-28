@@ -20,7 +20,6 @@ export default function SignupPage() {
     }
 
     async function signup() {
-        // Implement signup logic here
         console.log("Signup button clicked");
         if (!email || !password || !password2) {alert("Please enter an email and password to create your account."); return;} // empty field checks
         if (!isValidEmail(email)) {alert("Email must a valid email address. Please try again."); return;} // email validation
@@ -37,14 +36,10 @@ export default function SignupPage() {
 
             const data = await res.json();
             
-            if (!data.valid) {
-                alert("An account with that information already exists. Please try again.");
-            } else {
-                window.location.href = "/login"; // Redirect to login after account creation
-            }
-        } catch (error) {
-            console.error('Error during account creation:', error);
-        }
+            if (!data.valid) {alert("An account with that information already exists. Please try again.");}
+            else {window.location.href = "/login";} // Redirect to login after account creation
+
+        } catch (error) {console.error('Error during account creation:', error);}
     }
 
     return (
