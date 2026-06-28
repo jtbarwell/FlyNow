@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "userID": 0,
+      "email": "john.doe@email.com",
+      "password": "password123",
+      "bookings": [
+        0
+      ]
+    },
+    {
+      "userID": 1,
+      "email": "jane.doe@email.com",
+      "password": "password123",
+      "bookings": [
+        1
+      ]
+    }
+  ]
+}

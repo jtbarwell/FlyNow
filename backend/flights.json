@@ -17,12 +17,12 @@
         {
           "name": "A1",
           "class": "firstClass",
-          "booked": false
+          "booked": true
         },
         {
           "name": "B1",
           "class": "firstClass",
-          "booked": false
+          "booked": true
         },
         {
           "name": "A2",
