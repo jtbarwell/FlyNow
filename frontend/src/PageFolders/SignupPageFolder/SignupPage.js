@@ -20,7 +20,6 @@ export default function SignupPage() {
     }
 
     async function signup() {
-        console.log("Signup button clicked");
         if (!email || !password || !password2) {alert("Please enter an email and password to create your account."); return;} // empty field checks
         if (!isValidEmail(email)) {alert("Email must a valid email address. Please try again."); return;} // email validation
         if (!isValidPassword(password)) {alert("Password must be at least 8 characters and contain an uppercase letter, a lowercase letter, a number, and a symbol."); return;}
