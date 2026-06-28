@@ -63,7 +63,7 @@ export default function LoginPage() {
                     <button>Log In</button>
                 </div>
                 <div className="sign-up-button" onClick={nav_to_signup}>
-                    <button>Sign Up</button>
+                    <button>Create an account</button>
                 </div>
 
             </div>
