@@ -16,7 +16,7 @@ app.use(
 app.use(express.json());
 app.use(
   session({
-    secret: 'ProfessorKarim',
+    secret: 'CP317',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -71,7 +71,8 @@ async function signup(email, password) {
   udb.data.users.push({
     userID: udb.data.users.length,
     email: email,
-    password: password
+    password: password,
+    bookings: []
   });
   await udb.write();
 
@@ -87,7 +88,7 @@ app.post('/api/signup', async (req, res) => {
 // SEARCH
 
 function search(origin, destination, date) {
-  const flights = fdb.data.flights.filter(f => f.origin === origin && f.destination === destination && f.date === date);
+  const flights = fdb.data.flights.filter(f => f.origin === origin && f.destination === destination && f.departureTime.startsWith(date));
   return flights;
 }
 
