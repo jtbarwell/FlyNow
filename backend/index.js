@@ -120,7 +120,7 @@ app.post('/api/bookingSeat', (req, res) => {
   return res.json({ valid: true });
 });
 
-async function bookingEnd(req) {
+async function bookingConfirm(req) {
   const booking = req.session.booking;
 
   bdb.data.bookings.push(booking);
@@ -132,12 +132,14 @@ async function bookingEnd(req) {
   const seat = fdb.data.flights[booking.flightID].seats.find(s => s.name === booking.seat);
   seat.booked = true;
   await fdb.write();
+
+  return booking;
 }
 
-app.post('/api/bookingEnd', async (req, res) => {
-  await bookingEnd(req);
+app.post('/api/bookingConfirm', async (req, res) => {
+  const booking = await bookingConfirm(req);
   req.session.booking = null;
-  return res.json({ valid: true });
+  return res.json({ booking });
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
