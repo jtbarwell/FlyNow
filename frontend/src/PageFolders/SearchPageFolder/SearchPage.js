@@ -72,12 +72,12 @@ export default function SearchPage() {
                 const dep_time = new Date(searchResults[i].departureTime);
                 const arr_time = new Date(searchResults[i].arrivalTime);
                 const format_dep_time = dep_time.toLocaleString('en-US', {
-                    year: 'numeric', month: 'short', day: 'numeric', 
-                    hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
+                    month: 'short', day: 'numeric', 
+                    hour: 'numeric', minute: '2-digit', hour12: true
                 });
                 const format_arr_time = arr_time.toLocaleString('en-US', {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
+                    month: 'short', day: 'numeric',
+                    hour: 'numeric', minute: '2-digit', hour12: true
                 });
 
                 resultsHTML.push(
@@ -121,16 +121,16 @@ export default function SearchPage() {
                 <div className ="search-menu">
                     <div className="origin-airport-input">
                         <p>From</p>
-                        <input type="text" placeholder="Here" onChange={handleOriginChange} />
+                        <input id="origin-input" type="text" placeholder="Here" value={origin} onChange={handleOriginChange} />
                     </div>
                     <div className="destination-airport-input">
                         <p>To</p>
-                        <input type="text" placeholder="There" onChange={handleDestinationChange} />
+                        <input id="destination-input" type="text" placeholder="There" value={destination} onChange={handleDestinationChange} />
                     </div>
 
                     <div className="trip-type-input">
                         <p>Trip Type</p>
-                        <select onChange={handleTripTypeChange}>
+                        <select id="trip-type-input" value={trip_type} onChange={handleTripTypeChange}>
                             <option value="one-way">One Way</option>
                             <option value="round-trip">Round Trip</option>
                         </select>
@@ -138,15 +138,15 @@ export default function SearchPage() {
 
                     <div className="departure-date-input">
                         <p>Departure Date</p>
-                        <input type="date" onChange={handleDepartureDateChange} />
+                        <input id="departure-date-input" type="date" value={departure_date} onChange={handleDepartureDateChange} />
                     </div>
                     <div className="return-date-input">
                         <p>Return Date</p>
-                        <input type="date" onChange={handleReturnDateChange} />
+                        <input id="return-date-input" type="date" value={return_date} onChange={handleReturnDateChange} />
                     </div>
                     <div className="traveller-count-input">
                         <p>Traveller Count</p>
-                        <input type="number" min="1" defaultValue="1" onChange={handleTravellerCountChange} />
+                        <input id="traveller-count-input" type="number" min="1" value={traveller_count} onChange={handleTravellerCountChange} />
                     </div>
                     <div className="search-flights-button" onClick={async () => await processSearch()}>
                         <button>Search Flights</button>
@@ -155,6 +155,7 @@ export default function SearchPage() {
                 <hr></hr>
                 <div className="search-results">
                     <ResultsPanel />
+                    <hr></hr>
                     <div className="round-trip-flight-result" onClick={() => selectTrip(1)}>
                         <div className="object-panel">
                             <div className="flight-info">
