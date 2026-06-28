@@ -87,14 +87,14 @@ app.post('/api/signup', async (req, res) => {
 
 // SEARCH
 
-function search(origin, destination, date) {
-  const flights = fdb.data.flights.filter(f => f.origin === origin && f.destination === destination && f.departureTime.startsWith(date));
+function search(origin, destination, departure_date) {
+  const flights = fdb.data.flights.filter(f => f.origin === origin && f.destination === destination && f.departureTime.startsWith(departure_date));
   return flights;
 }
 
 app.post('/api/search', (req, res) => {
-  const { origin, destination, date } = req.body;
-  const flights = search(origin, destination, date);
+  const { origin, destination, trip_type, departure_date, return_date, traveller_count } = req.body;
+  const flights = search(origin, destination, departure_date);
   return res.json(flights);
 });
 
@@ -105,6 +105,7 @@ function bookingStart(req, flightID) {
     bookingID: bdb.data.bookings.length,
     userID: req.session.user.userID,
     flightID: flightID,
+    travellers = []
   };
 
   return booking;
@@ -117,6 +118,11 @@ app.post('/api/bookingStart', (req, res) => {
 
 app.post('/api/bookingSeat', (req, res) => {
   req.session.booking.seat = req.body.seat;
+  return res.json({ valid: true });
+});
+
+app.post('/api/bookingTraveller', (req, res) => {
+  req.session.booking.travellers.push(req.body);
   return res.json({ valid: true });
 });
 
@@ -141,5 +147,6 @@ app.post('/api/bookingConfirm', async (req, res) => {
   req.session.booking = null;
   return res.json({ booking });
 });
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
