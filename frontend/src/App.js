@@ -12,6 +12,12 @@ import SignupPage from './PageFolders/SignupPageFolder/SignupPage';
 import FlightBookingPage from './PageFolders/FlightBookingPageFolder/FlightBookingPage';
 import ReviewBookingPage from './PageFolders/ReviewBookingPageFolder/ReviewBookingPage';
 import ConfirmBookingPage from './PageFolders/ConfirmBookingPageFolder/ConfirmBookingPage';
+import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
+// import PersonalInfoPage from './PageFolders/AccountPageFolder/AccountPageSubFolder/PersonalInfoPage';
+// import PaymentInfoPage from './PageFolders/AccountPageFolder/AccountPageSubFolder/PaymentInfoPage';
+import UserTripsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserTripsPage';
+// import SettingsPage from './PageFolders/AccountPageFolder/AccountPageSubFolder/SettingsPage';
+import UserFlightDetailsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserFlightDetailsPage';
 
 
 // Main App Component -------------------------------------------------------------------------------------
@@ -36,7 +42,12 @@ function App() {
                 <Route path="/flight-booking" element={<FlightBookingPage />} />
                 <Route path="/review-booking" element={<ReviewBookingPage />} />
                 <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
-                {/* <Route path="/my-roster" element={<MyRosterPage />} /> */}
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/account/my-trips" element={<UserTripsPage />} />
+                {/* <Route path="/account/personal-info" element={<PersonalInfoPage />} />
+                <Route path="/account/payment-info" element={<PaymentInfoPage />} />
+                <Route path="/account/settings" element={<SettingsPage />} /> */}
+                <Route path="/account/my-trips/flight-details" element={<UserFlightDetailsPage />} />
             </Routes>
         </Router>
         
