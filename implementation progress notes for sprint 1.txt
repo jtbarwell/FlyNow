@@ -1,0 +1,51 @@
+// WHAT WAS BUILT
+
+- login feature
+- flight search feature
+- flight booking feature
+- account page
+- flight history
+- database to store user, booking, and flight information
+
+// ARCHITECTURE
+
+React <-> Express (run on Node.js) <-> lowdb <-> JSON
+
+React
+ - browser
+ - front end
+ - renders UI
+ - updates with state changes
+ - page navigation
+ - accepts user input
+ - queries Express via API
+
+Express (run on Node.js)
+ - server
+ - back end
+ - receives API queries from React
+ - handles data logic via JavaScript functions
+ - translates between front end and database
+ - queries lowdb
+ - manages sessions
+
+lowdb
+ - wrapper for JSON files
+ - reads + writes to disk
+
+JSON
+ - data storage
+
+// TECHNICAL DIFFICULTIES
+
+ - how to render UI
+   > React
+ - integration with front and back end
+   > Express
+ - integration with back end and database
+   > lowdb
+ - back end object lifespan: because the back end is only called upon via API query from React, the control flow is externally influenced and object lifespans are difficult to maintain
+   > sessions, objects are saved in the session and last the duration of the session's lifespan. Also lets us restrict session lifespan to 30 min (security)
+ - data lifespan: app data must persist beyond one run of the program
+   > external database, .json files
+ - (idk if this should be included) lack of familiarity with react/javascript/lowdb, started with multiple classes + data structures saved within the program itself, unnecessary. Transitioned to standalone functions and objects + majority of data stored in json files as the data structure. Functional programming instead of OOP
