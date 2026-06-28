@@ -105,7 +105,7 @@ function bookingStart(req, flightID) {
     bookingID: bdb.data.bookings.length,
     userID: req.session.user.userID,
     flightID: flightID,
-    travellers: []
+    travellers = []
   };
 
   return booking;
