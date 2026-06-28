@@ -59,6 +59,8 @@ app.post('/api/logout', (req, res) => {
 // SIGN UP
 
 async function signup(email, password) {
+  if (password.length < 8) return false;
+
   const user = udb.data.users.find(u => u.email === email);
   if (user) return false;
   
@@ -140,6 +142,22 @@ app.post('/api/bookingConfirm', async (req, res) => {
   const booking = await bookingConfirm(req);
   req.session.booking = null;
   return res.json({ booking });
+});
+
+async function bookingCancel(bookingID) {
+  const booking = bdb.data.bookings[bookingID];
+
+  booking.cancelled = true;
+  await bdb.write();
+
+  const seat = fdb.data.flights[booking.flightID].seats.find(s => s.name === booking.seat);
+  seat.booked = false;
+  await fdb.write();
+}
+
+app.post('/api/bookingCancel', async (req, res) => {
+  await bookingCancel(req.body.bookingID);
+  return res.json({ valid: true });
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
