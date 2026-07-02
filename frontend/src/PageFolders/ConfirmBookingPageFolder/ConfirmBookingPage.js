@@ -42,6 +42,10 @@ export default function ConfirmBookingPage() {
                     </div>
                 </div>
 
+                <div className="trip-price">
+                    <h4>$1790</h4>
+                </div>
+
                 <div className="return-to-home-button" onClick={nav_to_home}>
                     <button>Return to Search</button>
                 </div>

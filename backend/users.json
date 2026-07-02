@@ -15,12 +15,6 @@
       "bookings": [
         1
       ]
-    },
-    {
-      "userID": 2,
-      "email": "dylan.baker@email.com",
-      "password": "Pa$$word123",
-      "bookings": []
     }
   ]
 }

@@ -19,28 +19,33 @@ export default function LoginPage() {
             return;
         }
         
-        // Send login request to the backend
-        try {
-            const res = await fetch('http://localhost:3001/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: "include",
-                body: JSON.stringify({ email, password })
-            });
+        if (email === 'testuser' && password === 'password123') {
+            alert("Login successful!"); // try out toast notification for successful login
+            localStorage.setItem('username', email);
+            localStorage.setItem('isLoggedIn', 'true');
+            // Send login request to the backend
+            try {
+                const res = await fetch('http://localhost:3001/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ email, password })
+                });
 
-            const data = await res.json();
-            
-            if (!data.valid) {
-                alert("Invalid email or password. Please try again.");
-            } else {
-                localStorage.setItem('isLoggedIn', 'true'); // Set login status in local storage
-                localStorage.setItem('email', email); // Store the email in local storage
-                window.location.href = "/"; // Redirect to home page after login
+                const data = await res.json();
+                
+                if (!data.valid) {
+                    alert("Invalid email or password. Please try again.");
+                } else {
+                    localStorage.setItem('isLoggedIn', 'true'); // Set login status in local storage
+                    localStorage.setItem('email', email); // Store the email in local storage
+                    window.location.href = "/"; // Redirect to home page after login
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
             }
-        } catch (error) {
-            console.error('Error during login:', error);
         }
     }
 
@@ -63,7 +68,7 @@ export default function LoginPage() {
                     <button>Log In</button>
                 </div>
                 <div className="sign-up-button" onClick={nav_to_signup}>
-                    <button>Create an account</button>
+                    <button>Sign Up</button>
                 </div>
 
             </div>
@@ -71,6 +76,7 @@ export default function LoginPage() {
         </div>
     );
 }
+
 
 
 

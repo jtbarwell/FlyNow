@@ -33,6 +33,12 @@ await udb.read();
 await bdb.read();
 await fdb.read();
 
+// HELPER FUNCTIONS
+
+function isValid(res, valid) {
+  return res.json({ valid });
+}
+
 // LOGIN
 
 function login(email, password) {
@@ -45,22 +51,20 @@ app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   const user = login(email, password);
   if (user) req.session.user = user;
-  return res.json({ valid: !!user });
+  isValid(res, user);
 });
 
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy((err) => {
-    return res.json({ valid: !err });
+    isValid(res, !err);
   });
 });
 
 // SIGN UP
 
 async function signup(email, password) {
-  if (password.length < 8) return false;
-
   const user = udb.data.users.find(u => u.email === email);
   if (user) return false;
   
@@ -78,7 +82,7 @@ async function signup(email, password) {
 app.post('/api/signup', async (req, res) => {
   const { email, password } = req.body;
   const valid = await signup(email, password);
-  return res.json({ valid });
+  isValid(res, valid);
 });
 
 // SEARCH
@@ -144,20 +148,5 @@ app.post('/api/bookingConfirm', async (req, res) => {
   return res.json({ booking });
 });
 
-async function bookingCancel(bookingID) {
-  const booking = bdb.data.bookings[bookingID];
-
-  booking.cancelled = true;
-  await bdb.write();
-
-  const seat = fdb.data.flights[booking.flightID].seats.find(s => s.name === booking.seat);
-  seat.booked = false;
-  await fdb.write();
-}
-
-app.post('/api/bookingCancel', async (req, res) => {
-  await bookingCancel(req.body.bookingID);
-  return res.json({ valid: true });
-});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
