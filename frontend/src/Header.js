@@ -79,7 +79,7 @@ function Header() {
     const profile_click = () => {
         const isLoggedIn = localStorage.getItem('isLoggedIn');
         if (isLoggedIn === 'true') {
-            window.location.href = "/profile";
+            window.location.href = "/account";
         } else {
             window.location.href = "/login";
         }
@@ -117,11 +117,6 @@ function Header() {
                 </ul>
 
 
-
-                <Link to={'/account'} className={`nav-link ${location.pathname === '/account' ? 'active' : ''}`}>
-                    <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2"></i></button>
-                </Link>
-	            
 
 	            <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2" onClick={profile_click}></i></button>
 
