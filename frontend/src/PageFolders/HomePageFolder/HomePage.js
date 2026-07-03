@@ -38,16 +38,16 @@ export default function HomePage() {
 
                 <div className="origin-airport-input">
                     <p>From</p>
-                    <input type="text" placeholder="Here" onChange={handleOriginChange} />
+                    <input className="input-text" type="text" placeholder="Here" onChange={handleOriginChange} />
                 </div>
                 <div className="destination-airport-input">
                     <p>To</p>
-                    <input type="text" placeholder="There" onChange={handleDestinationChange} />
+                    <input className="input-text" type="text" placeholder="There" onChange={handleDestinationChange} />
                 </div>
 
                 <div className="trip-type-input">
                     <p>Trip Type</p>
-                    <select onChange={handleTripTypeChange}>
+                    <select className="input-select" onChange={handleTripTypeChange}>
                         <option value="one-way">One Way</option>
                         <option value="round-trip">Round Trip</option>
                     </select>
@@ -55,15 +55,15 @@ export default function HomePage() {
 
                 <div className="departure-date-input">
                     <p>Departure Date</p>
-                    <input type="date" onChange={handleDepartureDateChange} />
+                    <input className="input-date" type="date" onChange={handleDepartureDateChange} />
                 </div>
                 <div className="return-date-input">
                     <p>Return Date</p>
-                    <input type="date" onChange={handleReturnDateChange} />
+                    <input className="input-date" type="date" onChange={handleReturnDateChange} />
                 </div>
                 <div className="traveller-count-input">
                     <p>Traveller Count</p>
-                    <input type="number" min="1" defaultValue="1" onChange={handleTravellerCountChange} />
+                    <input className="input-number" type="number" min="1" defaultValue="1" onChange={handleTravellerCountChange} />
                 </div>
                 <div className="search-flights-button" onClick={search}>
                     <button>Search Flights</button>

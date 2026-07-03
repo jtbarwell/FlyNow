@@ -67,7 +67,7 @@
 	padding: 20px;
 	border-radius: 10px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	max-width: 400px;
+	max-width: 450px;
 	margin: auto;
 }
 
@@ -78,4 +78,63 @@
 	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
 	max-width: 600px;
 	margin: auto;
+}
+.object-panel:hover {
+	background-color: #f8e0fa;
+}
+
+.input-text {
+	width: 100%;
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+.input-text:focus {
+	border-color: #6200ea;
+	outline: none;
+	box-shadow: 0 0 5px rgba(98, 0, 234, 0.5);
+}
+
+.input-select {
+	width: 100%;
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+.input-select:focus {
+	border-color: #6200ea;
+	outline: none;
+	box-shadow: 0 0 5px rgba(98, 0, 234, 0.5);
+}
+
+.input-date {
+	width: 100%;
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+.input-date:focus {
+	border-color: #6200ea;
+	outline: none;
+	box-shadow: 0 0 5px rgba(98, 0, 234, 0.5);
+}
+
+.input-number {
+	width: 100%;
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+.input-number:focus {
+	border-color: #6200ea;
+	outline: none;
+	box-shadow: 0 0 5px rgba(98, 0, 234, 0.5);
 }
