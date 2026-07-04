@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function HomePage() {
     const [origin, setOrigin] = useState('');
     const [destination, setDestination] = useState('');
-    const [trip_type, setTripType] = useState('');
+    const [trip_type, setTripType] = useState('one-way');
     const [departure_date, setDepartureDate] = useState('');
     const [return_date, setReturnDate] = useState('');
     const [traveller_count, setTravellerCount] = useState(1);

@@ -101,7 +101,15 @@ export default function SearchPage() {
 
     const selectTrip = (index) => {
         const flight = searchResults[index];
-        localStorage.setItem('flightData', JSON.stringify(flight));
+        const tripData = {
+            airline: flight.airline,
+            origin: origin,
+            destination: destination,
+            tripType: trip_type,
+            travellerCount: traveller_count,
+            flights: [flight]
+        };
+        localStorage.setItem('tripData', JSON.stringify(tripData));
         window.location.href = "/flight-booking";
     }
 
