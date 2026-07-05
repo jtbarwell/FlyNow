@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function SeatingBaggagePage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
+    const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
 
     useEffect(() => {
         const fetchTripData = async () => {
@@ -18,7 +19,7 @@ export default function SeatingBaggagePage() {
 
     const handleSeatSelection = (flightIndex, seats) => {
         // Update the selected seats for the specific flight
-        // [{A3, B2}, {C1, D4}]
+        // [[A3, B2], [C1, D4]]
         setSelectedSeats(() => {
             const updatedSeats = [...selectedSeats];
             updatedSeats[flightIndex] = seats;
@@ -47,6 +48,24 @@ export default function SeatingBaggagePage() {
     function getAvailableSeats(seats) {
         if (!Array.isArray(seats)) return [];
         return seats.filter(seat => seat.booked === false);
+    }
+
+    function validSeatSelection() {
+        for (let i = 0; i < tripData.flights.length; i++) {
+            const selectedForFlight = selectedSeats[i] || [];
+            if (selectedForFlight.length < tripData.travellerCount) {
+                alert(`Please select ${tripData.travellerCount} seat(s) for flight ${i + 1}.`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function navToReviewBooking() {
+        if (!validSeatSelection()) {return;}
+        localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+        localStorage.setItem('additionalCheckedBags', additionalCheckedBags);
+        window.location.href = "/review-booking";
     }
 
     function SeatSelectionMenu({ flight }) {
@@ -95,13 +114,15 @@ export default function SeatingBaggagePage() {
                 }
             }
         }
-        return totalPrice;
+        return totalPrice + (additionalCheckedBags * 50); // Assuming $50 per additional checked bag
     }
 
     function SeatingAndBaggageMenu() {
         if (!tripData) {
             return <p>Loading trip data...</p>;
         }
+        const includedCheckedBaggage = 1; // Example included checked baggage count
+        const checkedBaggageCost = 50; // Example cost for checked baggage
         return (
             <div className="booking-menu">
                 <h2>Step 1: Choose Your Seat{tripData?.travellerCount !== 1 ? 's' : ''}</h2>
@@ -133,13 +154,23 @@ export default function SeatingBaggagePage() {
 
                 <br></br>
 
+                <h2>Step 2: Select Baggage Options</h2>
+
+                <h5>Personal item: ✓</h5>
+                <h5>Carry-on bag: ✓</h5>
+                {includedCheckedBaggage ? <h5>{includedCheckedBaggage} checked baggage included per traveller</h5> : ""}
+                <label htmlFor="additional-checked-bags">Additional Checked Bags:</label>
+                <input className="input-number" type="number" id="additional-checked-bags" min="0" placeholder="Enter number of additional checked bags" value={additionalCheckedBags} onChange={(e) => setAdditionalCheckedBags(parseInt(e.target.value) || 0)}></input>
+
+                <p>+${ (additionalCheckedBags * checkedBaggageCost).toFixed(2) }</p>
+
                 <div className="trip-price">
                     <h4>${calculateTotalPrice(tripData?.flights).toFixed(2)}</h4>
                 </div>
                 
                 <br></br>
 
-                <div className="continue-booking-button" onClick={nav_to_review_booking}>
+                <div className="continue-booking-button" onClick={navToReviewBooking}>
                     <button>Continue</button>
                 </div>
 
