@@ -10,6 +10,7 @@ import LoginPage from './PageFolders/LoginPageFolder/LoginPage';
 import SearchPage from './PageFolders/SearchPageFolder/SearchPage';
 import SignupPage from './PageFolders/SignupPageFolder/SignupPage';
 import FlightBookingPage from './PageFolders/FlightBookingPageFolder/FlightBookingPage';
+import SeatingBaggagePage from './PageFolders/SeatingBaggagePageFolder/SeatingBaggagePage';
 import ReviewBookingPage from './PageFolders/ReviewBookingPageFolder/ReviewBookingPage';
 import ConfirmBookingPage from './PageFolders/ConfirmBookingPageFolder/ConfirmBookingPage';
 import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
@@ -40,6 +41,7 @@ function App() {
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/flight-booking" element={<FlightBookingPage />} />
+                <Route path="/seating-baggage-booking" element={<SeatingBaggagePage />} />
                 <Route path="/review-booking" element={<ReviewBookingPage />} />
                 <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
                 <Route path="/account" element={<AccountPage />} />

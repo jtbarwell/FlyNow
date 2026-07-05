@@ -1,7 +1,8 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function FlightBookingPage() {
+export default function SeatingBaggagePage() {
     const [tripData, setTripData] = useState(null);
+    const [selectedSeats, setSelectedSeats] = useState([]);
 
     useEffect(() => {
         const fetchTripData = async () => {
@@ -14,6 +15,16 @@ export default function FlightBookingPage() {
 
         fetchTripData();
     }, []);
+
+    const handleSeatSelection = (flightIndex, seats) => {
+        // Update the selected seats for the specific flight
+        // [{A3, B2}, {C1, D4}]
+        setSelectedSeats(() => {
+            const updatedSeats = [...selectedSeats];
+            updatedSeats[flightIndex] = seats;
+            return updatedSeats;
+        });
+    };
 
     function renderFlightInfo(flight) {
         const dep_time = new Date(flight.departureTime);
@@ -33,38 +44,89 @@ export default function FlightBookingPage() {
         );
     }
 
+    function getAvailableSeats(seats) {
+        if (!Array.isArray(seats)) return [];
+        return seats.filter(seat => seat.booked === false);
+    }
+
+    function SeatSelectionMenu({ flight }) {
+        if (!flight || !flight.seats) {
+            return null;
+        }
+        const flightIndex = tripData.flights.indexOf(flight);
+        const availableSeats = getAvailableSeats(flight.seats);
+        const selectedForFlight = selectedSeats[flightIndex] || [];
+
+        return (
+            <div className="seat-selection-menu">
+                <h5>Available Seats</h5>
+                <div className="seat-options">
+                    <select 
+                        multiple
+                        value={selectedForFlight} 
+                        onChange={(e) => {
+                        const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+                        if (selectedOptions.length > tripData.travellerCount) {
+                            alert(`You can only select up to ${tripData.travellerCount} seat(s).`);
+                            return;
+                        }
+                        handleSeatSelection(flightIndex, selectedOptions);
+                    }}>
+                        {availableSeats.map((seat) => (
+                            <option key={seat.name} value={seat.name}>
+                                {seat.name} - ${flight.price[seat.class]?.toFixed(2) || 'N/A'}
+                            </option>
+                        ))}
+                    </select>
+                    <p>Selected Seats: {selectedForFlight.join(', ') || 'None'}</p>
+                </div>
+            </div>
+        );
+    }
+
     function calculateTotalPrice(flights) {
         let totalPrice = 0;
         for (const flight of flights) {
-            totalPrice += flight.price.economy;
+            for (const seat of selectedSeats[tripData.flights.indexOf(flight)] || []) {
+                const seatInfo = flight.seats.find(s => s.name === seat);
+                if (seatInfo) {
+                    const seatCost = flight.price[seatInfo.class] || 0;
+                    totalPrice += seatCost;
+                }
+            }
         }
-        return totalPrice * (tripData?.travellerCount || 1);
+        return totalPrice;
     }
 
-    function BookingMenu() {
+    function SeatingAndBaggageMenu() {
         if (!tripData) {
             return <p>Loading trip data...</p>;
         }
         return (
             <div className="booking-menu">
-                <h3>{tripData?.airline}</h3>
-                <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
-                <h5>{tripData?.tripType === 'one-way' ? 'One Way' : 'Round Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
+                <h2>Step 1: Choose Your Seat{tripData?.travellerCount !== 1 ? 's' : ''}</h2>
+                <h5>{tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                 
                 {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (
                     <div className="trip-list">
                         <div className="object-panel">
                             {renderFlightInfo(tripData?.flights[0])}
+                            <hr></hr>
+                            <SeatSelectionMenu flight={tripData?.flights[0]}></SeatSelectionMenu>
                         </div>
                         <br></br>
                         <div className="object-panel">
                             {renderFlightInfo(tripData?.flights[1])}
+                            <hr></hr>
+                            <SeatSelectionMenu flight={tripData?.flights[1]}></SeatSelectionMenu>
                         </div>
                     </div>
                 ) : (
                     <div className="trip-list">
                         <div className="object-panel">
                             {renderFlightInfo(tripData?.flights[0])}
+                            <hr></hr>
+                            <SeatSelectionMenu flight={tripData?.flights[0]}></SeatSelectionMenu>
                         </div>
                     </div>
                 )}
@@ -77,7 +139,7 @@ export default function FlightBookingPage() {
                 
                 <br></br>
 
-                <div className="continue-booking-button" onClick={nav_to_seating_baggage_booking}>
+                <div className="continue-booking-button" onClick={nav_to_review_booking}>
                     <button>Continue</button>
                 </div>
 
@@ -87,17 +149,17 @@ export default function FlightBookingPage() {
     return (
         <div className="text-center">
             <h1 className="display-4">Welcome</h1>
-            <p>This is the booking page where you can see all the flight information of your selected trip!</p>
+            <p>This is the seating and baggage booking page where you can choose seats and select baggage options for your selected trip!</p>
 
             <div className="back-panel">
-                <BookingMenu></BookingMenu>
+                <SeatingAndBaggageMenu></SeatingAndBaggageMenu>
             </div>
         </div>
     );
 }
 
-function nav_to_seating_baggage_booking() {
-    window.location.href = "/seating-baggage-booking";
+function nav_to_review_booking() {
+    window.location.href = "/review-booking";
 }
 
 /*
