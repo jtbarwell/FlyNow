@@ -121,25 +121,36 @@ app.post('/api/bookingTraveller', (req, res) => {
 });
 
 async function bookingConfirm(req) {
-  const booking = req.session.booking;
+  const {bookedFlights, additionalCheckedBags} = req.body;
+  const bookings = [];
+  for (const flight of bookedFlights) {
+    for (const bookedSeat of flight.seats) {
+      const booking = {
+        bookingID: bdb.data.bookings.length,
+        userID: req.session.user.userID,
+        flightID: flight.flightID,
+        seat: bookedSeat
+      };
 
-  bdb.data.bookings.push(booking);
-  await bdb.write();
+      bdb.data.bookings.push(booking);
+      await bdb.write();
 
-  udb.data.users[booking.userID].bookings.push(booking.bookingID);
-  await udb.write();
+      udb.data.users[req.session.user.userID].bookings.push(booking.bookingID);
+      await udb.write();
 
-  const seat = fdb.data.flights[booking.flightID].seats.find(s => s.name === booking.seat);
-  seat.booked = true;
-  await fdb.write();
+      const seat = fdb.data.flights[booking.flightID].seats.find(s => s.name === booking.seat);
+      seat.booked = true;
+      await fdb.write();
 
-  return booking;
+      bookings.push(booking);
+    }
+  }
+  return bookings;
 }
 
 app.post('/api/bookingConfirm', async (req, res) => {
-  const booking = await bookingConfirm(req);
-  req.session.booking = null;
-  return res.json({ booking });
+  const bookings = await bookingConfirm(req);
+  return res.json({ bookings });
 });
 
 

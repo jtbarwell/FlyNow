@@ -3664,12 +3664,12 @@
         {
           "name": "B2",
           "class": "business",
-          "booked": false
+          "booked": true
         },
         {
           "name": "C2",
           "class": "business",
-          "booked": false
+          "booked": true
         },
         {
           "name": "A3",

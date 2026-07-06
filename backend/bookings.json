@@ -4,15 +4,25 @@
       "bookingID": 0,
       "userID": 0,
       "flightID": 0,
-      "seat": "A1",
-      "travellers": []
+      "seat": "A1"
     },
     {
       "bookingID": 1,
       "userID": 1,
       "flightID": 0,
-      "seat": "B1",
-      "travellers": []
+      "seat": "B1"
+    },
+    {
+      "bookingID": 2,
+      "userID": 2,
+      "flightID": 12,
+      "seat": "B2"
+    },
+    {
+      "bookingID": 3,
+      "userID": 2,
+      "flightID": 12,
+      "seat": "C2"
     }
   ]
 }

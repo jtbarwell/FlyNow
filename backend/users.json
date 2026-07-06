@@ -20,7 +20,10 @@
       "userID": 2,
       "email": "dylan.baker@email.com",
       "password": "Pa$$word1",
-      "bookings": []
+      "bookings": [
+        2,
+        3
+      ]
     }
   ]
 }

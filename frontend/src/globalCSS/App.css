@@ -138,3 +138,15 @@
 	outline: none;
 	box-shadow: 0 0 5px rgba(98, 0, 234, 0.5);
 }
+
+.flight-info {
+	text-align: left;
+}
+.flight-info-bottom-bar {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 10px;
+}
+.flight-info-bottom-bar p {
+	margin: 0;
+}
