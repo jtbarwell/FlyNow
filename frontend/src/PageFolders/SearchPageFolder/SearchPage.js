@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function SearchPage() {
     const [origin, setOrigin] = useState('');
     const [destination, setDestination] = useState('');
-    const [trip_type, setTripType] = useState('');
+    const [trip_type, setTripType] = useState('one-way');
     const [departure_date, setDepartureDate] = useState('');
     const [return_date, setReturnDate] = useState('');
     const [traveller_count, setTravellerCount] = useState(1);
@@ -14,7 +14,7 @@ export default function SearchPage() {
         const init = async () => {
             const savedOrigin = localStorage.getItem('origin') || '';
             const savedDestination = localStorage.getItem('destination') || '';
-            const savedTripType = localStorage.getItem('trip_type') || '';
+            const savedTripType = localStorage.getItem('trip_type') || 'one-way';
             const savedDepartureDate = localStorage.getItem('departure_date') || '';
             const savedReturnDate = localStorage.getItem('return_date') || '';
             const savedTravellerCount = localStorage.getItem('traveller_count') || '1';
