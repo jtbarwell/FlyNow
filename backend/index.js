@@ -155,3 +155,4 @@ app.post('/api/bookingConfirm', async (req, res) => {
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+console.log("HIIIII")
