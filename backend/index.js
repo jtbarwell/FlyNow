@@ -5,7 +5,9 @@ import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 
 const app = express();
-const PORT = 3001;
+const PORT = 3001; // awesome sauce
+
+console.log("hello world")
 
 app.use(
   cors({
