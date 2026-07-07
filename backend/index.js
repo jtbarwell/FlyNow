@@ -153,5 +153,53 @@ app.post('/api/bookingConfirm', async (req, res) => {
   return res.json({ bookings });
 });
 
+app.get('/api/my-trips', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+
+  await bdb.read();
+  await fdb.read();
+
+  const userBookings = bdb.data.bookings.filter(b => b.userID === req.session.user.userID);
+  const tripsMap = {};
+
+  for (const booking of userBookings) {
+    const flight = fdb.data.flights[booking.flightID];
+    if (!flight) continue;
+
+    const tripKey = booking.tripID ?? `legacy-${booking.bookingID}`;
+    if (!tripsMap[tripKey]) {
+      tripsMap[tripKey] = {
+        tripID: tripKey,
+        tripType: booking.tripType ?? 'one-way',
+        additionalCheckedBags: booking.additionalCheckedBags ?? 0,
+        travellerCount: 0,
+        flights: []
+      };
+    }
+
+    tripsMap[tripKey].travellerCount += 1;
+    tripsMap[tripKey].flights.push({
+      flightID: flight.flightID,
+      name: flight.name,
+      airline: flight.airline,
+      origin: flight.origin,
+      destination: flight.destination,
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+      seat: booking.seat,
+      price: flight.price
+    });
+  }
+
+  const trips = Object.values(tripsMap).sort((a, b) => {
+    const dateA = new Date(a.flights[0]?.departureTime || 0);
+    const dateB = new Date(b.flights[0]?.departureTime || 0);
+    return dateA - dateB;
+  });
+
+  return res.json({ trips });
+});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

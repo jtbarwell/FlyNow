@@ -1,10 +1,68 @@
 import React, { useEffect, useState } from 'react';
 
 export default function UserFlightDetailsPage() {
+    const [trip, setTrip] = useState(null);
+    const [error, setError] = useState(null);
 
     const marginStyle = {
         margin: '5px 0'
     };
+
+    useEffect(() => {
+        const savedTrip = localStorage.getItem('selectedTrip');
+        if (savedTrip) {
+            setTrip(JSON.parse(savedTrip));
+        } else {
+            setError('No trip selected. Please choose a trip from the My Trips page.');
+        }
+    }, []);
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        if (isNaN(date)) return 'Unknown date';
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    };
+
+    if (trip) {
+        return (
+            <div className="text-center">
+                <div className="back-panel">
+                    <div className="booking-menu">
+                        <h3>{trip.tripType === 'round-trip' ? 'Round Trip' : 'Single Trip'}</h3>
+                        <h4>{trip.flights[0]?.origin} &rarr; {trip.flights[trip.flights.length - 1]?.destination}</h4>
+                        <p align="left">
+                            {trip.travellerCount} Traveller{trip.travellerCount !== 1 ? 's' : ''}<br></br>
+                            {trip.flights.length} Flight{trip.flights.length !== 1 ? 's' : ''}
+                        </p>
+                        {trip.flights.map((flight, index) => (
+                            <div key={`${flight.flightID}-${index}`} className="log-in-nav-button" style={{ textAlign: 'left', marginBottom: '14px' }}>
+                                <div className="flight-info">
+                                    <h5>{flight.airline}: {flight.name}</h5>
+                                    <p>{flight.origin} &rarr; {flight.destination}</p>
+                                    <p>Depart {formatDate(flight.departureTime)}</p>
+                                    <p>Arrive {formatDate(flight.arrivalTime)}</p>
+                                    <p>Seat: {flight.seat}</p>
+                                </div>
+                            </div>
+                        ))}
+                        {trip.additionalCheckedBags > 0 && (
+                            <p style={{ textAlign: 'left' }}>Additional checked bags: {trip.additionalCheckedBags}</p>
+                        )}
+                        <div className="back-button" onClick={nav_to_my_trips}>
+                            <button className="btn btn-outline-secondary" style={marginStyle}>Back</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
   return (
     <div className="text-center">
