@@ -5,9 +5,7 @@ import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 
 const app = express();
-const PORT = 3001; // awesome sauce
-
-console.log("hello world")
+const PORT = 3001; 
 
 app.use(
   cors({
@@ -157,4 +155,3 @@ app.post('/api/bookingConfirm', async (req, res) => {
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-console.log("HIIIII")
