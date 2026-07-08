@@ -95,8 +95,8 @@ function Header() {
                 </Link>
 
                 
-
-                <ul className="nav">
+                {/* unsure if we will use this section; keep for now - Josh */}
+                {/* <ul className="nav">
                     {navItems.map((item, index) => {
                         if (!item.dropdown) {
                             return (
@@ -115,11 +115,22 @@ function Header() {
                             )
                         }
                     })}
-                </ul>
+                </ul> */}
 
 
+                <button 
+                    type="button" 
+                    className="btn btn-circle" 
+                    style={{ 
+                        backgroundColor: '#ECE6F0', 
+                        borderColor: '#ECE6F0', 
+                        color: '#ffffff' 
+                    }}
+                    onClick={profile_click}>
+                    <i className="bi bi-person-circle h2 m-0"></i>
+                </button>
 
-	            <button type="button" className="btn btn-primary btn-circle"><i className="bi bi-person-circle h2" onClick={profile_click}></i></button>
+
 
             </div>
         </header>

@@ -2,32 +2,38 @@
   "users": [
     {
       "userID": 0,
-      "email": "john.doe@email.com",
-      "password": "password123",
-      "bookings": [
-        0
-      ]
+      "authCode": "93217997-95da-4564-b7d8-abd02b97f8c2",
+      "firstName": "Joshua",
+      "surname": "Barwell",
+      "email": "jtbarwell@gmail.com",
+      "password": "DavidBrown@104",
+      "bookings": []
     },
     {
       "userID": 1,
+      "authCode": "3bf805b6-bbea-4f58-ae4a-da288a7ce9bc",
+      "firstName": "Jane",
+      "surname": "Doe",
       "email": "jane.doe@email.com",
-      "password": "password123",
-      "bookings": [
-        1
-      ]
+      "password": "tempUser123!",
+      "bookings": []
     },
     {
       "userID": 2,
-      "email": "dylan.baker@email.com",
-      "password": "Pa$$word1",
-      "bookings": [
-        2
-      ]
+      "authCode": "543b93fc-39d2-4c44-9985-f936c4fee6b2",
+      "firstName": "John",
+      "surname": "Doe",
+      "email": "john.doe@email.com",
+      "password": "tempUser123!",
+      "bookings": []
     },
     {
       "userID": 3,
-      "email": "cam@flynow.com",
-      "password": "Roblox123!",
+      "authCode": "36b08e40-cdf9-45c0-9d81-6021895a8eff",
+      "firstName": "Brady",
+      "surname": "Kuzma",
+      "email": "brady.kuzma@gmail.com",
+      "password": "Run3sc@pe",
       "bookings": []
     }
   ]
