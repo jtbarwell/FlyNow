@@ -14,10 +14,10 @@ import SeatingBaggagePage from './PageFolders/SeatingBaggagePageFolder/SeatingBa
 import ReviewBookingPage from './PageFolders/ReviewBookingPageFolder/ReviewBookingPage';
 import ConfirmBookingPage from './PageFolders/ConfirmBookingPageFolder/ConfirmBookingPage';
 import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
-// import PersonalInfoPage from './PageFolders/AccountPageFolder/AccountPageSubFolder/PersonalInfoPage';
-// import PaymentInfoPage from './PageFolders/AccountPageFolder/AccountPageSubFolder/PaymentInfoPage';
+// import PersonalInfoPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/PersonalInfoPage';
+// import PaymentInfoPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/PaymentInfoPage';
 import UserTripsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserTripsPage';
-// import SettingsPage from './PageFolders/AccountPageFolder/AccountPageSubFolder/SettingsPage';
+import SettingsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/SettingsPage';
 import UserFlightDetailsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserFlightDetailsPage';
 
 
@@ -46,9 +46,9 @@ function App() {
                 <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/account/my-trips" element={<UserTripsPage />} />
-                {/* <Route path="/account/personal-info" element={<PersonalInfoPage />} />
-                <Route path="/account/payment-info" element={<PaymentInfoPage />} />
-                <Route path="/account/settings" element={<SettingsPage />} /> */}
+                {/* <Route path="/account/personal-info" element={<PersonalInfoPage />} /> */}
+                {/* <Route path="/account/payment-info" element={<PaymentInfoPage />} /> */}
+                <Route path="/account/settings" element={<SettingsPage />} />
                 <Route path="/account/my-trips/flight-details" element={<UserFlightDetailsPage />} />
             </Routes>
         </Router>
