@@ -28,10 +28,12 @@ app.use(
 const udb = new Low(new JSONFile('users.json'), { users: [] });
 const bdb = new Low(new JSONFile('bookings.json'), { bookings: [] });
 const fdb = new Low(new JSONFile('flights.json'), { flights: [] });
+const adb = new Low(new JSONFile('admins.json'), { admins: [] });
 
 await udb.read();
 await bdb.read();
 await fdb.read();
+await adb.read();
 
 // LOGIN
 
@@ -77,6 +79,154 @@ app.post('/api/signup', async (req, res) => {
   const { email, password } = req.body;
   const valid = await signup(email, password);
   return res.json({ valid });
+});
+
+// ADMIN LOGIN
+
+function getAdmin(email, password) {
+  return adb.data.admins.find(admin => admin.email === email && admin.password === password) || null;
+}
+
+app.post('/api/admin/login', async (req, res) => {
+  const { email, password } = req.body;
+  await adb.read();
+
+  if (!email || !password) {
+    return res.json({ valid: false, message: 'Email and password are required.' });
+  }
+
+  const admin = getAdmin(email, password);
+  if (admin) {
+    req.session.admin = { email };
+    return res.json({ valid: true });
+  }
+
+  return res.json({ valid: false, message: 'Invalid admin credentials.' });
+});
+
+app.post('/api/admin/create', async (req, res) => {
+  const { email, password, passwordRepeat, pin } = req.body;
+  await adb.read();
+
+  if (!email || !password || !passwordRepeat || !pin) {
+    return res.json({ valid: false, message: 'All fields are required.' });
+  }
+
+  if (pin !== '123456') {
+    return res.json({ valid: false, message: 'Invalid admin pin.' });
+  }
+
+  if (password !== passwordRepeat) {
+    return res.json({ valid: false, message: 'Passwords do not match.' });
+  }
+
+  const existing = adb.data.admins.find(admin => admin.email === email);
+  if (existing) {
+    return res.json({ valid: false, message: 'An admin account already exists with that email.' });
+  }
+
+  const newAdmin = {
+    adminID: adb.data.admins.length,
+    email,
+    password
+  };
+
+  adb.data.admins.push(newAdmin);
+  await adb.write();
+
+  return res.json({ valid: true, message: 'Admin account created successfully.' });
+});
+
+function requireAdmin(req, res, next) {
+  if (req.session.admin) {
+    return next();
+  }
+
+  return res.status(401).json({ valid: false, message: 'Admin authentication required' });
+}
+
+app.get('/api/admin/flights', requireAdmin, async (req, res) => {
+  await fdb.read();
+  return res.json({ valid: true, flights: fdb.data.flights });
+});
+
+app.post('/api/admin/flights', requireAdmin, async (req, res) => {
+  const { flightID, name, origin, destination, departureTime, arrivalTime, price } = req.body;
+  await fdb.read();
+
+  const index = fdb.data.flights.findIndex(f => f.flightID === Number(flightID));
+  if (index === -1) {
+    return res.status(404).json({ valid: false, message: 'Flight not found' });
+  }
+
+  fdb.data.flights[index] = {
+    ...fdb.data.flights[index],
+    name,
+    origin,
+    destination,
+    departureTime,
+    arrivalTime,
+    price: {
+      economy: Number(price?.economy),
+      business: Number(price?.business),
+      firstClass: Number(price?.firstClass)
+    }
+  };
+
+  await fdb.write();
+  return res.json({ valid: true, message: 'Flight updated successfully' });
+});
+
+app.post('/api/admin/flights/new', requireAdmin, async (req, res) => {
+  const { name, origin, destination, departureTime, arrivalTime, price } = req.body;
+  await fdb.read();
+
+  const newFlight = {
+    flightID: fdb.data.flights.length,
+    name,
+    airline: 'FlyNow Admin',
+    origin,
+    destination,
+    departureTime,
+    arrivalTime,
+    price: {
+      economy: Number(price?.economy),
+      business: Number(price?.business),
+      firstClass: Number(price?.firstClass)
+    },
+    seats: []
+  };
+
+  fdb.data.flights.push(newFlight);
+  await fdb.write();
+  return res.json({ valid: true, message: 'Flight created successfully', flight: newFlight });
+});
+
+app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
+  await fdb.read();
+  const flightID = Number(req.params.flightID);
+  fdb.data.flights = fdb.data.flights.filter(f => f.flightID !== flightID);
+  await fdb.write();
+  return res.json({ valid: true, message: 'Flight deleted successfully' });
+});
+
+app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res) => {
+  await bdb.read();
+  await udb.read();
+
+  const flightID = Number(req.params.flightID);
+  const bookings = bdb.data.bookings.filter(b => b.flightID === flightID);
+  const passengers = bookings.map(booking => {
+    const user = udb.data.users.find(u => u.userID === booking.userID);
+    return {
+      bookingID: booking.bookingID,
+      seat: booking.seat,
+      name: user?.email || 'Passenger',
+      email: user?.email || ''
+    };
+  });
+
+  return res.json({ valid: true, passengers });
 });
 
 // SEARCH

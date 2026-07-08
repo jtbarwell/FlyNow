@@ -5,7 +5,8 @@ import './globalCSS/App.css';
 
 const navItems = [
     { path: '/', label: 'Home' },
-    { path: '/search', label: 'Search Flights' }
+    { path: '/search', label: 'Search Flights' },
+    { path: '/admin/login', label: 'Admin' }
 ];
 
 

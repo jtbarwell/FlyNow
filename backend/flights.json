@@ -6,12 +6,12 @@
       "airline": "Air Canada",
       "origin": "YYZ",
       "destination": "YVR",
-      "departureTime": "2025-04-01T05:30:00Z",
-      "arrivalTime": "2025-04-01T10:30:00Z",
+      "departureTime": "2025-04-01T05:30",
+      "arrivalTime": "2025-04-01T10:30",
       "price": {
-        "firstClass": 1870,
+        "economy": 355,
         "business": 810,
-        "economy": 355
+        "firstClass": 1870
       },
       "seats": [
         {
@@ -30355,6 +30355,21 @@
           "booked": true
         }
       ]
+    },
+    {
+      "flightID": 101,
+      "name": "HM 232",
+      "airline": "FlyNow Admin",
+      "origin": "YYC",
+      "destination": "YUL",
+      "departureTime": "2026-07-07T18:52",
+      "arrivalTime": "2026-07-08T00:55",
+      "price": {
+        "economy": 600,
+        "business": 816,
+        "firstClass": 1500
+      },
+      "seats": []
     }
   ]
 }
