@@ -21,8 +21,7 @@
       "email": "dylan.baker@email.com",
       "password": "Pa$$word1",
       "bookings": [
-        2,
-        3
+        2
       ]
     },
     {
