@@ -254,16 +254,23 @@ app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res
   await udb.read();
 
   const flightID = Number(req.params.flightID);
-  const bookings = bdb.data.bookings.filter(b => b.flightID === flightID);
-  const passengers = bookings.map(booking => {
-    const user = udb.data.users.find(u => u.userID === booking.userID);
-    return {
-      bookingID: booking.bookingID,
-      seat: booking.seat,
-      name: user?.email || 'Passenger',
-      email: user?.email || ''
-    };
-  });
+  const passengers = [];
+
+  for (const booking of bdb.data.bookings) {
+    if (booking.isCancelled) continue;
+    for (const bookedFlight of booking.flights) {
+      if (bookedFlight.flightID !== flightID) continue;
+      const user = udb.data.users.find(u => u.userID === booking.userID);
+      for (const seat of bookedFlight.seats) {
+        passengers.push({
+          bookingID: booking.bookingID,
+          seat: seat,
+          name: user?.email || 'Passenger',
+          email: user?.email || ''
+        });
+      }
+    }
+  }
 
   return res.json({ valid: true, passengers });
 });
@@ -277,69 +284,56 @@ function search(origin, destination, departure_date) {
 
 app.post('/api/search', (req, res) => {
   const { origin, destination, trip_type, departure_date, return_date, traveller_count } = req.body;
-  const flights = search(origin, destination, departure_date);
-  return res.json(flights);
+  const outboundFlights = search(origin, destination, departure_date);
+  const returnFlights = (trip_type === 'round-trip') ? search(destination, origin, return_date) : [];
+  return res.json({ outboundFlights, returnFlights });
 });
 
 // BOOK
 
-function bookingStart(req, flightID) {
+async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, additionalCheckedBags) {
   const booking = {
     bookingID: bdb.data.bookings.length,
-    userID: req.session.user.userID,
-    flightID: flightID,
-    travellers: []
+    userID: userID,
+    tripType: tripType,
+    travellerCount: travellerCount,
+    additionalCheckedBags: additionalCheckedBags,
+    flights: [],
+    travellers: [],
+    isCancelled: false
   };
+
+  for (const flight of bookedFlights) {
+    booking.flights.push({
+      flightID: flight.flightID,
+      seats: flight.seats
+    });
+
+    const flights = fdb.data.flights.find(f => f.flightID === flight.flightID);
+    for (const seat of flight.seats) {
+      const foundSeat = flights?.seats.find(s => s.name === seat);
+      if (foundSeat) foundSeat.booked = true;
+    }
+  }
+  await fdb.write();
+
+  bdb.data.bookings.push(booking);
+  await bdb.write();
+
+  udb.data.users[userID].bookings.push(booking.bookingID);
+  await udb.write();
 
   return booking;
 }
 
-app.post('/api/bookingStart', (req, res) => {
-  req.session.booking = bookingStart(req, req.body.flightID);
-  return res.json({ valid: true });
-});
-
-app.post('/api/bookingSeat', (req, res) => {
-  req.session.booking.seat = req.body.seat;
-  return res.json({ valid: true });
-});
-
-app.post('/api/bookingTraveller', (req, res) => {
-  req.session.booking.travellers.push(req.body);
-  return res.json({ valid: true });
-});
-
-async function bookingConfirm(req) {
-  const {bookedFlights, additionalCheckedBags} = req.body;
-  const bookings = [];
-  for (const flight of bookedFlights) {
-    for (const bookedSeat of flight.seats) {
-      const booking = {
-        bookingID: bdb.data.bookings.length,
-        userID: req.session.user.userID,
-        flightID: flight.flightID,
-        seat: bookedSeat
-      };
-
-      bdb.data.bookings.push(booking);
-      await bdb.write();
-
-      udb.data.users[req.session.user.userID].bookings.push(booking.bookingID);
-      await udb.write();
-
-      const seat = fdb.data.flights[booking.flightID].seats.find(s => s.name === booking.seat);
-      seat.booked = true;
-      await fdb.write();
-
-      bookings.push(booking);
-    }
-  }
-  return bookings;
-}
-
 app.post('/api/bookingConfirm', async (req, res) => {
-  const bookings = await bookingConfirm(req);
-  return res.json({ bookings });
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+
+  const { tripType, travellerCount, bookedFlights, additionalCheckedBags } = req.body;
+  const booking = await bookingConfirm(req.session.user.userID, tripType, travellerCount, bookedFlights, additionalCheckedBags);
+  return res.json({ booking });
 });
 
 app.get('/api/my-trips', async (req, res) => {
@@ -347,47 +341,26 @@ app.get('/api/my-trips', async (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
 
-  await bdb.read();
-  await fdb.read();
+  const bookings = bdb.data.bookings.filter(b => b.userID === req.session.user.userID && !b.isCancelled);
 
-  const userBookings = bdb.data.bookings.filter(b => b.userID === req.session.user.userID);
-  const tripsMap = {};
+  const tripsMap = bookings.map(b => ({
+    tripID: b.bookingID,
+    tripType: b.tripType,
+    travellerCount: b.travellerCount,
+    additionalCheckedBags: b.additionalCheckedBags,
+    flights: b.flights.map(f => ({
+      ...fdb.data.flights.find(fl => fl.flightID === f.flightID),
+      seats: undefined,
+      seat: f.seats.join(', ')
+    }))
+  }));
 
-  for (const booking of userBookings) {
-    const flight = fdb.data.flights[booking.flightID];
-    if (!flight) continue;
-
-    const tripKey = booking.tripID ?? `legacy-${booking.bookingID}`;
-    if (!tripsMap[tripKey]) {
-      tripsMap[tripKey] = {
-        tripID: tripKey,
-        tripType: booking.tripType ?? 'one-way',
-        additionalCheckedBags: booking.additionalCheckedBags ?? 0,
-        travellerCount: 0,
-        flights: []
-      };
-    }
-
-    tripsMap[tripKey].travellerCount += 1;
-    tripsMap[tripKey].flights.push({
-      flightID: flight.flightID,
-      name: flight.name,
-      airline: flight.airline,
-      origin: flight.origin,
-      destination: flight.destination,
-      departureTime: flight.departureTime,
-      arrivalTime: flight.arrivalTime,
-      seat: booking.seat,
-      price: flight.price
-    });
-  }
-
-  const trips = Object.values(tripsMap).sort((a, b) => {
+  const trips = tripsMap.sort((a, b) => {
     const dateA = new Date(a.flights[0]?.departureTime || 0);
     const dateB = new Date(b.flights[0]?.departureTime || 0);
     return dateA - dateB;
   });
-
+  
   return res.json({ trips });
 });
 
