@@ -17,6 +17,20 @@ export default function HomePage() {
 
     const marginStyle = { margin: '15px 0' };
 
+    const [showSection, setShowSection] = useState(false);
+    useEffect(() => {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        setShowSection(isLoggedIn === 'false');
+    }, []);
+
+    const getGreeting = () => {
+        const hours = new Date().getHours(); // Returns 0-23
+        if (hours < 12) return 'Good morning';
+        if (hours < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
+
+
     function search() {
         // Store the search parameters in local storage and switch to the search page
         localStorage.setItem('origin', origin);
@@ -30,24 +44,28 @@ export default function HomePage() {
 
     return (
         <div className="text-center">
-            <h1 className="display-4">Welcome</h1>
+            <h1 className="display-4">{getGreeting()}</h1>
 
             <div className="back-panel">
-                <div className="action-button" onClick={nav_to_login}>
-                    <button style={marginStyle}>Log In</button>
+
+                <div className="action-button" onClick={nav_to_search}>
+                    <button style={marginStyle}>Search Flights</button>
                 </div>
-                <div className="action-button" onClick={nav_to_signup}>
-                    <button style={marginStyle}>Sign Up</button>
-                </div>
+                
+                {/* make conditional - only show up if not logged in */}
+                {showSection && (
+                    <><div className="action-button" onClick={nav_to_login}>
+                        <button style={marginStyle}>Log In</button>
+                    </div><div className="action-button" onClick={nav_to_signup}>
+                            <button style={marginStyle}>Sign Up</button>
+                        </div></>
+                )}
+                {/* ------------------------------------------------ */}
             </div>
         </div>
     );
 }
 
-function nav_to_login() {
-    window.location.href = "/login";
-}
-
-function nav_to_signup() {
-    window.location.href = "/signup";
-}
+function nav_to_login() {   window.location.href = "/login";    }
+function nav_to_signup() {  window.location.href = "/signup";   }
+function nav_to_search() {  window.location.href = "/search";   }
