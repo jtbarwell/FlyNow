@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export default function AdminLoginPage() {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [passwordRepeat, setPasswordRepeat] = useState('');
   const [pin, setPin] = useState('');
@@ -35,8 +36,11 @@ export default function AdminLoginPage() {
 
       const data = await response.json();
       if (data.valid) {
+        const adminName = data.admin?.fullName || data.admin?.email || 'Admin';
+        localStorage.setItem('adminFullName', adminName);
         navigate('/admin');
       } else {
+        localStorage.removeItem('adminFullName');
         setError(data.message || 'Invalid admin credentials.');
       }
     } catch (err) {
@@ -49,7 +53,7 @@ export default function AdminLoginPage() {
     event.preventDefault();
     clearMessages();
 
-    if (!email || !password || !passwordRepeat || !pin) {
+    if (!email || !fullName || !password || !passwordRepeat || !pin) {
       setError('Please fill in every field to create an account.');
       return;
     }
@@ -64,13 +68,14 @@ export default function AdminLoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, password, passwordRepeat, pin })
+        body: JSON.stringify({ email, fullName, password, passwordRepeat, pin })
       });
 
       const data = await response.json();
       if (data.valid) {
         setSuccess('Admin account created successfully. Please sign in.');
         setMode('login');
+        setFullName('');
         setPassword('');
         setPasswordRepeat('');
         setPin('');
@@ -136,6 +141,16 @@ export default function AdminLoginPage() {
 
           {mode === 'create' && (
             <>
+              <div style={{ marginBottom: '0.75rem', textAlign: 'left' }}>
+                <label style={{ display: 'block', marginBottom: 6 }}>Full Name</label>
+                <input
+                  className="input-text"
+                  type="text"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  placeholder="Alex Johnson"
+                />
+              </div>
               <div style={{ marginBottom: '0.75rem', textAlign: 'left' }}>
                 <label style={{ display: 'block', marginBottom: 6 }}>Repeat Password</label>
                 <input

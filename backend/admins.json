@@ -3,16 +3,19 @@
     {
       "adminID": 0,
       "email": "anar@flynow.com",
+      "fullName": "Ana Ragu",
       "password": "Ana123!"
     },
     {
       "adminID": 1,
       "email": "harinem@flynow.com",
+      "fullName": "Harine Murali",
       "password": "Har123!"
     },
     {
       "adminID": 2,
       "email": "camt@flynow.com",
+      "fullName": "Cam Tran",
       "password": "Cam123!"
     }
   ]

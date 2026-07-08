@@ -54,7 +54,7 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy((err) => {
-    return res.json({ valid: !user });
+    return res.json({ valid: !err });
   });
 });
 
@@ -98,17 +98,17 @@ app.post('/api/admin/login', async (req, res) => {
   const admin = getAdmin(email, password);
   if (admin) {
     req.session.admin = { email };
-    return res.json({ valid: true });
+    return res.json({ valid: true, admin: { fullName: admin.fullName || admin.email, email: admin.email } });
   }
 
   return res.json({ valid: false, message: 'Invalid admin credentials.' });
 });
 
 app.post('/api/admin/create', async (req, res) => {
-  const { email, password, passwordRepeat, pin } = req.body;
+  const { email, fullName, password, passwordRepeat, pin } = req.body;
   await adb.read();
 
-  if (!email || !password || !passwordRepeat || !pin) {
+  if (!email || !fullName || !password || !passwordRepeat || !pin) {
     return res.json({ valid: false, message: 'All fields are required.' });
   }
 
@@ -128,6 +128,7 @@ app.post('/api/admin/create', async (req, res) => {
   const newAdmin = {
     adminID: adb.data.admins.length,
     email,
+    fullName,
     password
   };
 
@@ -135,6 +136,44 @@ app.post('/api/admin/create', async (req, res) => {
   await adb.write();
 
   return res.json({ valid: true, message: 'Admin account created successfully.' });
+});
+
+app.get('/api/admin/me', requireAdmin, async (req, res) => {
+  await adb.read();
+  const admin = adb.data.admins.find(a => a.email === req.session.admin.email);
+  if (!admin) {
+    return res.json({ valid: false, message: 'Admin not found.' });
+  }
+
+  return res.json({ valid: true, admin: { adminID: admin.adminID, email: admin.email, fullName: admin.fullName || admin.email } });
+});
+
+app.get('/api/admin/list', requireAdmin, async (req, res) => {
+  await adb.read();
+  const admins = adb.data.admins.map(({ adminID, email, fullName }) => ({ adminID, email, fullName }));
+  return res.json({ valid: true, admins });
+});
+
+app.post('/api/admin/update', requireAdmin, async (req, res) => {
+  const { adminID, fullName, password } = req.body;
+  await adb.read();
+
+  if (adminID === undefined || adminID === null || !fullName) {
+    return res.json({ valid: false, message: 'Admin ID and full name are required.' });
+  }
+
+  const index = adb.data.admins.findIndex(admin => admin.adminID === Number(adminID));
+  if (index === -1) {
+    return res.json({ valid: false, message: 'Admin not found.' });
+  }
+
+  adb.data.admins[index].fullName = fullName;
+  if (password) {
+    adb.data.admins[index].password = password;
+  }
+
+  await adb.write();
+  return res.json({ valid: true, message: 'Admin updated successfully.' });
 });
 
 function requireAdmin(req, res, next) {

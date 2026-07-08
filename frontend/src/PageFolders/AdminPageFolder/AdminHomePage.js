@@ -1,8 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminHomePage() {
   const navigate = useNavigate();
+  const [adminName, setAdminName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('adminFullName') || 'Admin';
+    }
+    return 'Admin';
+  });
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/admin/me', {
+      credentials: 'include'
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.valid && data.admin) {
+          const name = data.admin.fullName || data.admin.email || 'Admin';
+          setAdminName(name);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('adminFullName', name);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Unable to load admin profile', error);
+      });
+  }, []);
 
   const Item = ({ label, onClick, Icon }) => (
     <button onClick={onClick} className="admin-item" style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '1rem 0', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer' }}>
@@ -40,7 +65,7 @@ export default function AdminHomePage() {
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <div style={{ fontSize: 18, color: '#374151', fontWeight: 600 }}>Employee Name</div>
+            <div style={{ fontSize: 18, color: '#374151', fontWeight: 600 }}>{adminName}</div>
           </div>
 
           <div style={{ marginTop: 8 }}>
