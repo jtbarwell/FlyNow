@@ -97,7 +97,12 @@ export default function ReviewBookingPage() {
                         seats: selectedSeats[i]
                     });
             };
-            const payload = {bookedFlights, additionalCheckedBags};
+            const payload = {
+              tripType: tripData.tripType,
+              travellerCount: tripData.travellerCount,
+              bookedFlights,
+              additionalCheckedBags
+            };
             
             const res = await fetch("http://localhost:3001/api/bookingConfirm", {
                 method: "POST",
@@ -132,7 +137,7 @@ export default function ReviewBookingPage() {
                     <hr></hr>
                     <h3>{tripData?.airline}</h3>
                     <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
-                    <h5>{tripData?.trip_type === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellers} Traveller{tripData?.travellers !== 1 ? 's' : ''}</h5>
+                    <h5>{tripData?.tripType === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                     
                     {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (
                         <div className="trip-list">

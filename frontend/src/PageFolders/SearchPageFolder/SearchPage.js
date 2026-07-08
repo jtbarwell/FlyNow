@@ -7,7 +7,10 @@ export default function SearchPage() {
     const [departure_date, setDepartureDate] = useState('');
     const [return_date, setReturnDate] = useState('');
     const [traveller_count, setTravellerCount] = useState(1);
-    const [searchResults, setSearchResults] = useState([]);
+    const [outboundFlights, setOutboundFlights] = useState([]);
+    const [returnFlights, setReturnFlights] = useState([]);
+    const [outboundIndex, setOutboundIndex] = useState(null);
+
 
     
 
@@ -29,61 +32,98 @@ export default function SearchPage() {
                 body: JSON.stringify(payload)
             })
             const data = await res.json();
-            setSearchResults(data);
+            setOutboundFlights(data.outboundFlights || []);
+            setReturnFlights(data.returnFlights || []);
+            setOutboundIndex(null);
             console.log("Search results:", data);
         } catch (error) {
             console.error('Error during search:', error);
         }
     }
 
-    function ResultsPanel() {
-        if (!searchResults || searchResults.length === 0) return null;
+    function OneWayPanel({ flights, onSelect, selectedIndex }) {
+        if (!flights || flights.length === 0) return null;
         var resultsHTML = [];
-        if (trip_type === "one-way") {
-            for (let i = 0; i < searchResults.length; i++) {
-                const dep_time = new Date(searchResults[i].departureTime);
-                const arr_time = new Date(searchResults[i].arrivalTime);
-                const format_dep_time = dep_time.toLocaleString('en-US', {
-                    month: 'short', day: 'numeric', 
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                });
-                const format_arr_time = arr_time.toLocaleString('en-US', {
-                    month: 'short', day: 'numeric',
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                });
-
-                resultsHTML.push(
-                    <div key={i} className="one-way-flight-result object-panel" onClick={() => selectTrip(i)}>
-                        <div className="flight-info">
-                            <p>Flight: {searchResults[i].name}</p>
-                            <h5>{format_dep_time} - {format_arr_time}</h5>
-                            <p>Direct</p>
-                        </div>
-                        <div className="trip-price">
-                            <p>${searchResults[i].price.economy.toFixed(2)}</p>
-                        </div>
-                        <br></br>
+        for (let i = 0; i < flights.length; i++) {
+            const dep_time = new Date(flights[i].departureTime);
+            const arr_time = new Date(flights[i].arrivalTime);
+            const format_dep_time = dep_time.toLocaleString('en-US', {
+                month: 'short', day: 'numeric', 
+                hour: 'numeric', minute: '2-digit', hour12: true
+            });
+            const format_arr_time = arr_time.toLocaleString('en-US', {
+                month: 'short', day: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            });
+            resultsHTML.push(
+                <div key={i} className="one-way-flight-result object-panel"
+                     style={selectedIndex === i ? { border: '2px solid #4a90d9' } : {}}
+                     onClick={() => onSelect(i)}>
+                    <div className="flight-info">
+                        <p>Flight: {flights[i].name}</p>
+                        <h5>{format_dep_time} - {format_arr_time}</h5>
+                        <p>Direct</p>
                     </div>
-                );
-                resultsHTML.push(<br></br>);
-            }
+                    <div className="trip-price">
+                        <p>${flights[i].price.economy.toFixed(2)}</p>
+                    </div>
+                    <br></br>
+                </div>
+            );
+            resultsHTML.push(<br></br>);
         }
         return resultsHTML;
     }
 
-    const selectTrip = (index) => {
-        const flight = searchResults[index];
+   function ResultsPanel() {
+        if (!outboundFlights || outboundFlights.length === 0) return null;
+
+        if (trip_type === "one-way") {
+            return <OneWayPanel flights={outboundFlights} onSelect={selectTrip} />;
+        }
+
+        return (
+            <div>
+                <h4>Step 1: Choose your departing flight</h4>
+                <OneWayPanel
+                    flights={outboundFlights}
+                    onSelect={setOutboundIndex}
+                    selectedIndex={outboundIndex}
+                />
+
+                {outboundIndex !== null && (
+                    <div>
+                        <hr></hr>
+                        <h4>Step 2: Choose your return flight</h4>
+                        {returnFlights.length === 0
+                            ? <p>No return flights found for that date.</p>
+                            : <OneWayPanel flights={returnFlights} onSelect={selectReturnTrip} />}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    const buildTrip = (flights) => {
         const tripData = {
-            airline: flight.airline,
+            airline: flights[0].airline,
             origin: origin,
             destination: destination,
             tripType: trip_type,
-            travellerCount: traveller_count,
-            flights: [flight]
+            travellerCount: Number(traveller_count),
+            flights: flights
         };
         localStorage.setItem('tripData', JSON.stringify(tripData));
         window.location.href = "/flight-booking";
     }
+
+    const selectTrip = (index) => {
+        buildTrip([outboundFlights[index]]);
+    };
+
+    const selectReturnTrip = (index) => {
+        buildTrip([outboundFlights[outboundIndex], returnFlights[index]]);
+    };
 
     const handleOriginChange = (e) => {setOrigin(e.target.value);}
     const handleDestinationChange = (e) => {setDestination(e.target.value);}
@@ -126,7 +166,7 @@ export default function SearchPage() {
                     </div>
                     <div className="traveller-count-input">
                         <p>Traveller Count</p>
-                        <input className="input-number" type="number" min="1" defaultValue="1" value={traveller_count} onChange={handleTravellerCountChange} />
+                        <input className="input-number" type="number" min="1" value={traveller_count} onChange={handleTravellerCountChange} />
                     </div>
                     <div className="search-flights-button" onClick={async () => await processSearch()}>
                         <button>Search Flights</button>

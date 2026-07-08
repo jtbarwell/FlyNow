@@ -19,7 +19,12 @@ import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
 import UserTripsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserTripsPage';
 import SettingsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/SettingsPage';
 import UserFlightDetailsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserFlightDetailsPage';
-
+import AdminLoginPage from './PageFolders/AdminPageFolder/AdminLoginPage';
+import AdminHomePage from './PageFolders/AdminPageFolder/AdminHomePage';
+import AdminDashboardPage from './PageFolders/AdminPageFolder/AdminDashboardPage';
+import AdminPersonalInfoPage from './PageFolders/AdminPageFolder/AdminPersonalInfoPage';
+import AdminStatsPage from './PageFolders/AdminPageFolder/AdminStatsPage';
+import AdminSettingsPage from './PageFolders/AdminPageFolder/AdminSettingsPage';
 
 // Main App Component -------------------------------------------------------------------------------------
 function App() {
@@ -50,6 +55,12 @@ function App() {
                 {/* <Route path="/account/payment-info" element={<PaymentInfoPage />} /> */}
                 <Route path="/account/settings" element={<SettingsPage />} />
                 <Route path="/account/my-trips/flight-details" element={<UserFlightDetailsPage />} />
+                <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route path="/admin" element={<AdminHomePage />} />
+                <Route path="/admin/flights" element={<AdminDashboardPage />} />
+                <Route path="/admin/personal-info" element={<AdminPersonalInfoPage />} />
+                <Route path="/admin/stats" element={<AdminStatsPage />} />
+                <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Routes>
         </Router>
         
