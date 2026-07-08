@@ -46,28 +46,26 @@ export default function LoginPage() {
 
     return (
         <div className="text-center">
-            <h1 className="display-4">Welcome</h1>
-            <p>This is the login page where you can login in to your account! If you don't have an account, you can create one by clicking the button below.</p>
+            <h1 className="display-4">Login</h1>
 
             <div className="back-panel">
-                <div className="username-input">
-                    <p>Username/Email Address</p>
-                    <input className="input-text" type="text" placeholder="Enter your username or email" onChange={handleEmailChange} />
-                </div>
-                <div className="password-input">
+                <label className="input-box">
+                    <p>Email Address</p>
+                    <input className="input-text" type="text" placeholder="" onChange={handleEmailChange} />
+                </label>
+                <label className="input-box">
                     <p>Password</p>
-                    <input className="input-text" type="password" placeholder="Enter your password" onChange={handlePasswordChange} />
+                    <input className="input-text" type="password" placeholder="" onChange={handlePasswordChange} />
+                </label>
+                <div className="button-row">
+                    <div className="action-button" onClick={nav_to_signup}>
+                        <button>Sign Up</button>
+                    </div>
+                    <div className="action-button" onClick={login}>
+                        <button>Login</button>
+                    </div>
                 </div>
-
-                <div className="login-button" onClick={login}>
-                    <button>Log In</button>
-                </div>
-                <div className="sign-up-button" onClick={nav_to_signup}>
-                    <button>Create an Account</button>
-                </div>
-
             </div>
-            
         </div>
     );
 }
