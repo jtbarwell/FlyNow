@@ -153,9 +153,11 @@ app.post('/api/bookingConfirm', async (req, res) => {
   return res.json({ bookings });
 });
 
-app.get('/api/my-trips', async (req, res) => {
+// VIEW TRIP
+
+async function viewTrips(req) {
   if (!req.session.user) {
-    return res.status(401).json({ error: 'Not logged in' });
+    return { status: 401, data: { error: 'Not logged in' } };
   }
 
   await bdb.read();
@@ -199,7 +201,18 @@ app.get('/api/my-trips', async (req, res) => {
     return dateA - dateB;
   });
 
-  return res.json({ trips });
+  return { status: 200, data: { trips } };
+}
+
+app.get('/api/my-trips', async (req, res) => {
+  const result = await viewTrips(req);
+  if (result.status !== 200) {
+    return res.status(result.status).json(result.data);
+  }
+  return res.json(result.data);
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// CANCELBOOKING
+
