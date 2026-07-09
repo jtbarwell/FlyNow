@@ -124,7 +124,7 @@ export default function AdminLoginPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="employee@flynow.ca"
+              placeholder="Ex. employee@flynow.ca"
             />
           </div>
 
@@ -148,7 +148,7 @@ export default function AdminLoginPage() {
                   type="text"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Alex Johnson"
+                  placeholder="Ex. Raed Karim"
                 />
               </div>
               <div style={{ marginBottom: '0.75rem', textAlign: 'left' }}>
@@ -168,7 +168,7 @@ export default function AdminLoginPage() {
                   type="text"
                   value={pin}
                   onChange={(event) => setPin(event.target.value)}
-                  placeholder="123456"
+                  placeholder="Enter Valid Pin"
                 />
               </div>
             </>

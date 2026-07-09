@@ -20,7 +20,7 @@ export default function AdminStatsPage() {
   const FlightRow = ({ f }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fbf8fb', borderRadius: 12, border: '1px solid #efe7ef' }}>
       <div style={{ width: 44, height: 44, borderRadius: 10, background: '#f3e8ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 12l20-7-7 20-3-7-4-6z" stroke="#a78b9b" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+       <h4>&#x2708;</h4>
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, color: '#111827' }}>{f.title}</div>
