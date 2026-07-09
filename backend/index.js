@@ -3,6 +3,7 @@ import cors from 'cors';
 import session from 'express-session'; 
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
+import bcrypt from 'bcrypt';
 
 const app = express();
 const PORT = 3001; 
@@ -37,16 +38,17 @@ await adb.read();
 
 // LOGIN
 
-function login(email, password) {
-  const user = udb.data.users.find(u => u.email === email.toLowerCase() && u.password === password);
-  if (user) return user;
-  return null;
+async function login(email, password) {
+  const user = udb.data.users.find(u => u.email === email);
+  if (!user) return null;
+
+  const valid = await bcrypt.compare(password, user.password);
+  return valid ? user : null;
 }
 
-app.post('/api/login', (req, res) => {
-  // console.log("LOGIN HERE HERE AAHHH");
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-  const user = login(email, password);
+  const user = await login(email, password);
   if (user) req.session.user = user;
   return res.json({ valid: !!user });
 });
@@ -54,46 +56,44 @@ app.post('/api/login', (req, res) => {
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
-    // console.log("LOGOUT HERE HERE AAHHH");
-    req.session.destroy(() => {
-        res.clearCookie('connect.sid'); // or whatever your session cookie is named
-        res.json({ message: 'Logged out successfully' });
-    });
+  req.session.destroy((err) => {
+    return res.json({ valid: !err });
+  });
 });
 
 // SIGN UP
 
-async function signup(firstName, surname, email, password) {
-    
-    function handleAddItem() { return crypto.randomUUID(); }
+async function signup(email, password) {
+  const user = udb.data.users.find(u => u.email === email);
+  if (user) return false;
 
-    const user = udb.data.users.find(u => u.email === email.toLowerCase());
-    if (user) return false;
+  const passwordHash = await bcrypt.hash(password, 10);
+  
+  udb.data.users.push({
+    userID: udb.data.users.length,
+    email,
+    password: passwordHash,
+    bookings: []
+  });
+  await udb.write();
 
-    udb.data.users.push({
-        userID: udb.data.users.length,
-        authCode: handleAddItem(),
-        firstName: firstName,
-        surname: surname,
-        email: email.toLowerCase(),
-        password: password,
-        bookings: []
-    });
-    await udb.write();
-
-    return true;
+  return true;
 }
 
 app.post('/api/signup', async (req, res) => {
-    const { firstName, surname, email, password } = req.body;
-    const valid = await signup(firstName, surname, email, password);
-    return res.json({ valid });
+  const { email, password } = req.body;
+  const valid = await signup(email, password);
+  return res.json({ valid });
 });
 
 // ADMIN LOGIN
 
-function getAdmin(email, password) {
-  return adb.data.admins.find(admin => admin.email === email && admin.password === password) || null;
+async function getAdmin(email, password) {
+  const admin = adb.data.admins.find(a => a.email === email);
+  if (!admin) return null;
+
+  const valid = await bcrypt.compare(password, admin.password);
+  return valid ? admin : null;
 }
 
 app.post('/api/admin/login', async (req, res) => {
@@ -104,7 +104,7 @@ app.post('/api/admin/login', async (req, res) => {
     return res.json({ valid: false, message: 'Email and password are required.' });
   }
 
-  const admin = getAdmin(email, password);
+  const admin = await getAdmin(email, password);
   if (admin) {
     req.session.admin = { email };
     return res.json({ valid: true, admin: { fullName: admin.fullName || admin.email, email: admin.email } });
@@ -134,11 +134,13 @@ app.post('/api/admin/create', async (req, res) => {
     return res.json({ valid: false, message: 'An admin account already exists with that email.' });
   }
 
+  const passwordHash = await bcrypt.hash(password, 10);
+
   const newAdmin = {
     adminID: adb.data.admins.length,
     email,
     fullName,
-    password
+    password: passwordHash
   };
 
   adb.data.admins.push(newAdmin);
@@ -178,7 +180,7 @@ app.post('/api/admin/update', requireAdmin, async (req, res) => {
 
   adb.data.admins[index].fullName = fullName;
   if (password) {
-    adb.data.admins[index].password = password;
+    adb.data.admins[index].password = await bcrypt.hash(password, 10);
   }
 
   await adb.write();
