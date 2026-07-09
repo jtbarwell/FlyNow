@@ -66,7 +66,7 @@ export default function LoginPage() {
                     </div>
                 </div>
                 <br />
-                <p style={{ color: '#a491ab' }}>Are you an Admin? Log in <a href="/admin/login" style={{ color: '#a491ab' }}>here</a></p>
+                <p style={{ color: '#a491ab' }}>Are you an Admin? Log in <a href="/admin/login" style={{ color: '#846291' }}>here</a></p>
             </div>
         </div>
     );

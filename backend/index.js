@@ -44,58 +44,61 @@ function equals(s1,  s2) {
   return s1.trim().toLowerCase() === s2.trim().toLowerCase();
 }
 
+
 // LOGIN
 
-async function login(email, password) {
-  const user = udb.data.users.find(u => equals(u.email, email));
-  if (!user) return null;
-
-  const valid = await bcrypt.compare(password, user.password);
-  return valid ? user : null;
+function login(email, password) {
+  const user = udb.data.users.find(u => u.email === email.toLowerCase() && u.password === password);
+  if (user) return user;
+  return null;
 }
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', (req, res) => {
+  // console.log("LOGIN HERE HERE AAHHH");
   const { email, password } = req.body;
-  if (!email || !password) return res.json({ valid: false });
-
-  const user = await login(email, password);
+  const user = login(email, password);
   if (user) req.session.user = user;
   return res.json({ valid: !!user });
 });
 
+
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
-  req.session.destroy((err) => {
-    return res.json({ valid: !err });
-  });
+    // console.log("LOGOUT HERE HERE AAHHH");
+    req.session.destroy(() => {
+        res.clearCookie('connect.sid'); // or whatever your session cookie is named
+        res.json({ message: 'Logged out successfully' });
+    });
 });
 
 // SIGN UP
 
-async function signup(email, password) {
-  const user = udb.data.users.find(u => equals(u.email, email));
-  if (user) return false;
+async function signup(firstName, surname, email, password) {
 
-  const passwordHash = await bcrypt.hash(password, 10);
-  
-  udb.data.users.push({
-    userID: udb.data.users.length,
-    email,
-    password: passwordHash,
-    bookings: []
-  });
-  await udb.write();
+    // function handleAddItem() { return crypto.randomUUID(); }
 
-  return true;
+    const user = udb.data.users.find(u => u.email === email.toLowerCase());
+    if (user) return false;
+
+    udb.data.users.push({
+        userID: udb.data.users.length,
+        authCode: handleAddItem(),
+        firstName: firstName,
+        surname: surname,
+        email: email.toLowerCase(),
+        password: password,
+        bookings: []
+    });
+    await udb.write();
+
+    return true;
 }
 
 app.post('/api/signup', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.json({ valid: false });
-
-  const valid = await signup(email, password);
-  return res.json({ valid });
+    const { firstName, surname, email, password } = req.body;
+    const valid = await signup(firstName, surname, email, password);
+    return res.json({ valid });
 });
 
 // ADMIN LOGIN
