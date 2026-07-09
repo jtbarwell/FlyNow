@@ -86,6 +86,13 @@ function Header() {
         }
     };
 
+    const logout_click = () => {
+        window.location.href = "/logout";
+    };
+
+    const firstName = localStorage.getItem('firstName');
+    const greeting = firstName ? `Hi, ${firstName}` : 'Welcome back';
+
     return (
         <header className="d-flex py-3 mb-4 border-bottom bg-light">
             <div className="container-fluid d-flex flex-wrap justify-content-center">
@@ -117,21 +124,42 @@ function Header() {
                     })}
                 </ul> */}
 
+                { localStorage.getItem('isLoggedIn') === 'true' && (<span className="me-2 align-self-center">{greeting}</span>) }
 
-                <button 
-                    type="button" 
-                    className="btn btn-circle" 
-                    style={{ 
-                        backgroundColor: '#ECE6F0', 
-                        borderColor: '#ECE6F0', 
-                        color: '#ffffff' 
-                    }}
-                    onClick={profile_click}>
-                    <i className="bi bi-person-circle h2 m-0"></i>
-                </button>
-
-
-
+                <div className="dropdown">
+                    <button
+                        type="button"
+                        className="btn btn-circle"
+                        style={{
+                            backgroundColor: '#ECE6F0',
+                            borderColor: '#ECE6F0',
+                            color: '#49454F'
+                        }}
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <i className="bi bi-person-circle h2 m-0"></i>
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end">
+                        {localStorage.getItem('isLoggedIn') === 'true' ? (
+                            <>
+                                <li><button className="dropdown-item" onClick={() => window.location.href = '/account'}>
+                                    <i className="bi bi-person me-2"></i>My account
+                                </button></li>
+                                <li><button className="dropdown-item" onClick={() => window.location.href = '/account/my-trips'}>
+                                    <i className="bi bi-suitcase me-2"></i>My trips
+                                </button></li>
+                                <li><hr className="dropdown-divider" /></li>
+                                <li><button className="dropdown-item" onClick={logout_click}>
+                                    <i className="bi bi-box-arrow-right me-2"></i>Log out
+                                </button></li>
+                            </>
+                        ) : (
+                            <li><button className="dropdown-item" onClick={() => window.location.href = '/login'}>
+                                <i className="bi bi-box-arrow-in-right me-2"></i>Log in
+                            </button></li>
+                        )}
+                    </ul>
+                </div>
             </div>
         </header>
 
