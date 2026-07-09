@@ -22,7 +22,15 @@ export default function UserTripsPage() {
                 }
 
                 const data = await response.json();
-                setTrips(data.trips || []);
+                const serverTrips = data.trips || [];
+                // compute client-side fallback for isCancelable (use browser time)
+                const enriched = serverTrips.map(t => {
+                    const clientIsCancelable = Array.isArray(t.flights) && t.flights.some(f => new Date(f.departureTime) > new Date());
+                    return { ...t, isCancelable: !!t.isCancelable || clientIsCancelable };
+                });
+                setTrips(enriched);
+                // DEBUG: log trips received from backend and after enrichment
+                console.log('DEBUG: fetched trips (enriched)', enriched);
             } catch (err) {
                 setError('Failed to retrieve trip history.');
             } finally {
@@ -46,9 +54,19 @@ export default function UserTripsPage() {
         });
     };
 
+    const getTripStatus = (trip) => {
+        if (trip.isCancelled) return 'Cancelled';
+        if (trip.isCancelable) return 'Upcoming';
+        return 'Past';
+    };
+
     const viewDetails = (trip) => {
         localStorage.setItem('selectedTrip', JSON.stringify(trip));
         window.location.href = '/account/my-trips/flight-details';
+    };
+
+    const rebookTrip = () => {
+        window.location.href = '/search';
     };
 
     const renderTripCard = (trip) => {
@@ -61,17 +79,24 @@ export default function UserTripsPage() {
                         <p>{trip.tripType === 'round-trip' ? 'Round Trip' : 'One-Way'} • {trip.travellerCount} Traveller{trip.travellerCount !== 1 ? 's' : ''}</p>
                         <h5>{firstFlight.origin} &rarr; {lastFlight.destination}</h5>
                         <p>{formatDate(firstFlight.departureTime)}{trip.flights.length > 1 ? ` – ${formatDate(lastFlight.arrivalTime)}` : ''}</p>
+                        <p style={{ marginTop: '8px', fontWeight: 'bold' }}>Status: {getTripStatus(trip)}</p>
                         <button className="btn btn-outline-secondary" onClick={() => viewDetails(trip)} style={{ marginTop: '12px' }}>
                             View Details
                         </button>
+                        {trip.isCancelled && (
+                            <button className="btn btn-outline-primary" onClick={rebookTrip} style={{ marginTop: '12px', marginLeft: '12px' }}>
+                                Rebook
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
         );
     };
 
-    const roundTrips = trips.filter(trip => trip.tripType === 'round-trip');
-    const singleTrips = trips.filter(trip => trip.tripType === 'one-way');
+    const upcomingTrips = trips.filter(trip => trip.isCancelable && !trip.isCancelled);
+    const pastTrips = trips.filter(trip => !trip.isCancelable && !trip.isCancelled);
+    const cancelledTrips = trips.filter(trip => trip.isCancelled);
 
     return (
         <div className="text-center">
@@ -86,83 +111,32 @@ export default function UserTripsPage() {
                 {!loading && error && <p>{error}</p>}
                 {!loading && !error && trips.length > 0 && (
                     <>
-                        {roundTrips.length > 0 && (
+                        {upcomingTrips.length > 0 && (
                             <div className="search-results">
-                                <h2>Round Trips</h2>
-                                {roundTrips.map(renderTripCard)}
+                                <h2>Upcoming Trips</h2>
+                                {upcomingTrips.map(renderTripCard)}
                             </div>
                         )}
-                        {singleTrips.length > 0 && (
+                        {pastTrips.length > 0 && (
                             <div className="search-results" style={{ marginTop: '24px' }}>
-                                <h2>Single Trips</h2>
-                                {singleTrips.map(renderTripCard)}
+                                <h2>Past Trips</h2>
+                                {pastTrips.map(renderTripCard)}
                             </div>
+                        )}
+                        {cancelledTrips.length > 0 && (
+                            <div className="search-results" style={{ marginTop: '24px' }}>
+                                <h2>Cancelled Trips</h2>
+                                {cancelledTrips.map(renderTripCard)}
+                            </div>
+                        )}
+                        {upcomingTrips.length === 0 && pastTrips.length === 0 && cancelledTrips.length === 0 && (
+                            <p>No trips found in your trip history.</p>
                         )}
                     </>
                 )}
                 {!loading && !error && trips.length === 0 && (
-                    <p>No trips found in your trip history. Below are the existing example cards.</p>
+                    <p>No trips found in your trip history.</p>
                 )}
-
-                <div className="search-results" style={{ marginTop: '24px' }}>
-                    <h2>Upcoming Flights</h2>
-                    
-                    <div className="round-trip-flight-result">
-                        <div className="object-panel">
-                            <div className="flight-info" onClick={nav_to_details}>
-                                <p>Flight: AC317</p>
-                                <h5>LAX &rarr; YYZ</h5>
-                                <p>September 8, 2026</p>
-                            </div>
-                            <hr></hr>
-                            <div className="flight-info" onClick={nav_to_details}>
-                                <p>Flight: AC317</p>
-                                <h5>YYZ &rarr; LAX</h5>
-                                <p>September 1, 2026</p>
-                            </div>
-                        </div>
-                    </div>
-                    <br></br>
-
-                    <h2>Past Flights</h2>
-                    <div className="one-way-flight-result" onClick={nav_to_details}>
-                        <div className="object-panel">
-                            <div className="flight-info">  
-                                <p>Flight: WJ2026</p>
-                                <h5>PVG &rarr; YYZ</h5>
-                                <p>March 2, 2026</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="one-way-flight-result" onClick={nav_to_details}>
-                        <div className="object-panel">
-                            <div className="flight-info">  
-                                <p>Flight: WJ2026</p>
-                                <h5>YYZ &rarr; PVG</h5>
-                                <p>February 3, 2026</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="one-way-flight-result" onClick={nav_to_details}>
-                        <div className="object-panel">
-                            <div className="flight-info">  
-                                <p>Flight: AC541</p>
-                                <h5>SEA &rarr; YYZ</h5>
-                                <p>July 5, 2025</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="one-way-flight-result" onClick={nav_to_details}>
-                        <div className="object-panel">
-                            <div className="flight-info">  
-                                <p>Flight: AC541</p>
-                                <h5>YYZ &rarr; SEA</h5>
-                                <p>June 27, 2025</p>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
             </div>
         </div>
     );

@@ -52,7 +52,7 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy((err) => {
-    return res.json({ valid: !user });
+    return res.json({ valid: !err });
   });
 });
 
@@ -129,7 +129,8 @@ async function bookingConfirm(req) {
         bookingID: bdb.data.bookings.length,
         userID: req.session.user.userID,
         flightID: flight.flightID,
-        seat: bookedSeat
+        seat: bookedSeat,
+        isCancelled: false
       };
 
       bdb.data.bookings.push(booking);
@@ -145,12 +146,80 @@ async function bookingConfirm(req) {
       bookings.push(booking);
     }
   }
+  // Ensure all bookings in DB have explicit isCancelled flag (default false)
+  bdb.data.bookings = bdb.data.bookings.map(b => ({
+    ...b,
+    isCancelled: Object.prototype.hasOwnProperty.call(b, 'isCancelled') ? b.isCancelled : false
+  }));
+  await bdb.write();
+
   return bookings;
 }
 
 app.post('/api/bookingConfirm', async (req, res) => {
   const bookings = await bookingConfirm(req);
   return res.json({ bookings });
+});
+
+app.post('/api/cancel-booking', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+
+  await udb.read();
+  await bdb.read();
+  await fdb.read();
+
+  const bookingIDs = Array.isArray(req.body.bookingIDs) ? req.body.bookingIDs : [req.body.bookingID];
+  const validIDs = bookingIDs.filter(id => typeof id === 'number');
+
+  if (validIDs.length === 0) {
+    return res.status(400).json({ error: 'No valid booking IDs provided' });
+  }
+
+  const userID = req.session.user.userID;
+  const userBookings = bdb.data.bookings.filter(b => b.userID === userID && validIDs.includes(b.bookingID));
+
+  if (userBookings.length !== validIDs.length) {
+    return res.status(403).json({ error: 'One or more bookings are not owned by the logged in user' });
+  }
+
+  const now = new Date();
+  for (const booking of userBookings) {
+    if (booking.isCancelled) {
+      return res.status(400).json({ error: 'One or more selected bookings are already cancelled' });
+    }
+
+    const flight = fdb.data.flights.find(f => f.flightID === booking.flightID);
+    if (!flight) {
+      return res.status(400).json({ error: `Flight not found for booking ${booking.bookingID}` });
+    }
+
+    const departure = new Date(flight.departureTime);
+    if (departure <= now) {
+      return res.status(400).json({ error: 'Cannot cancel past flights' });
+    }
+  }
+
+  const cancelledBookingIDs = [];
+  for (const booking of userBookings) {
+    booking.isCancelled = true;
+    cancelledBookingIDs.push(booking.bookingID);
+
+    const flight = fdb.data.flights.find(f => f.flightID === booking.flightID);
+    if (flight) {
+      const seat = flight.seats.find(s => s.name === booking.seat);
+      if (seat) {
+        seat.booked = false;
+      }
+    }
+  }
+
+  await bdb.write();
+  await udb.write();
+  await fdb.write();
+
+  return res.json({ cancelledBookingIDs });
 });
 
 app.get('/api/my-trips', async (req, res) => {
@@ -163,11 +232,13 @@ app.get('/api/my-trips', async (req, res) => {
 
   const userBookings = bdb.data.bookings.filter(b => b.userID === req.session.user.userID);
   const tripsMap = {};
+  const now = new Date();
 
   for (const booking of userBookings) {
     const flight = fdb.data.flights[booking.flightID];
     if (!flight) continue;
 
+    const bookingCancelled = !!booking.isCancelled;
     const tripKey = booking.tripID ?? `legacy-${booking.bookingID}`;
     if (!tripsMap[tripKey]) {
       tripsMap[tripKey] = {
@@ -175,13 +246,18 @@ app.get('/api/my-trips', async (req, res) => {
         tripType: booking.tripType ?? 'one-way',
         additionalCheckedBags: booking.additionalCheckedBags ?? 0,
         travellerCount: 0,
-        flights: []
+        bookingIDs: [],
+        flights: [],
+        isCancelled: true,
+        isCancelable: false
       };
     }
 
     tripsMap[tripKey].travellerCount += 1;
+    tripsMap[tripKey].bookingIDs.push(booking.bookingID);
     tripsMap[tripKey].flights.push({
       flightID: flight.flightID,
+      bookingID: booking.bookingID,
       name: flight.name,
       airline: flight.airline,
       origin: flight.origin,
@@ -189,11 +265,23 @@ app.get('/api/my-trips', async (req, res) => {
       departureTime: flight.departureTime,
       arrivalTime: flight.arrivalTime,
       seat: booking.seat,
-      price: flight.price
+      price: flight.price,
+      isCancelled: bookingCancelled
     });
+
+    if (!bookingCancelled) {
+      tripsMap[tripKey].isCancelled = false;
+      const departure = new Date(flight.departureTime);
+      if (departure > now) {
+        tripsMap[tripKey].isCancelable = true;
+      }
+    }
   }
 
-  const trips = Object.values(tripsMap).sort((a, b) => {
+  const trips = Object.values(tripsMap).map(trip => ({
+    ...trip,
+    isCancelable: trip.isCancelable && !trip.isCancelled
+  })).sort((a, b) => {
     const dateA = new Date(a.flights[0]?.departureTime || 0);
     const dateB = new Date(b.flights[0]?.departureTime || 0);
     return dateA - dateB;
@@ -203,3 +291,4 @@ app.get('/api/my-trips', async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

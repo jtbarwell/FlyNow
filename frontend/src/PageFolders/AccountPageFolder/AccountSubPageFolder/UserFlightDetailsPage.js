@@ -11,7 +11,9 @@ export default function UserFlightDetailsPage() {
     useEffect(() => {
         const savedTrip = localStorage.getItem('selectedTrip');
         if (savedTrip) {
-            setTrip(JSON.parse(savedTrip));
+            const parsed = JSON.parse(savedTrip);
+            const clientIsCancelable = Array.isArray(parsed.flights) && parsed.flights.some(f => new Date(f.departureTime) > new Date());
+            setTrip({ ...parsed, isCancelable: !!parsed.isCancelable || clientIsCancelable });
         } else {
             setError('No trip selected. Please choose a trip from the My Trips page.');
         }
@@ -28,6 +30,46 @@ export default function UserFlightDetailsPage() {
             minute: '2-digit',
             hour12: true
         });
+    };
+
+    const getTripStatus = (trip) => {
+        if (trip.isCancelled) return 'Cancelled';
+        if (trip.isCancelable) return 'Upcoming';
+        return 'Past';
+    };
+
+    const rebookTrip = () => {
+        window.location.href = '/search';
+    };
+
+    const cancelReservation = async (trip) => {
+        if (!window.confirm('Are you sure you want to cancel this reservation?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3001/api/cancel-booking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ bookingIDs: trip.bookingIDs })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                alert(data?.error || 'Failed to cancel reservation.');
+                return;
+            }
+
+            const data = await response.json();
+            alert(`Reservation cancelled: ${data.cancelledBookingIDs.join(', ')}`);
+            localStorage.removeItem('selectedTrip');
+            window.location.href = '/account/my-trips';
+        } catch (err) {
+            alert('Unable to cancel reservation. Please try again later.');
+        }
     };
 
     if (trip) {
@@ -55,9 +97,26 @@ export default function UserFlightDetailsPage() {
                         {trip.additionalCheckedBags > 0 && (
                             <p style={{ textAlign: 'left' }}>Additional checked bags: {trip.additionalCheckedBags}</p>
                         )}
+                        <p style={{ textAlign: 'left', fontWeight: 'bold' }}>Status: {getTripStatus(trip)}</p>
+                        {trip.isCancelled && (
+                            <p style={{ textAlign: 'left', color: '#8a2b06' }}>This reservation has already been cancelled.</p>
+                        )}
+                        {!trip.isCancelled && !trip.isCancelable && (
+                            <p style={{ textAlign: 'left', color: '#8a2b06' }}>This reservation cannot be cancelled because it includes past travel.</p>
+                        )}
                         <div className="back-button" onClick={nav_to_my_trips}>
                             <button className="btn btn-outline-secondary" style={marginStyle}>Back</button>
                         </div>
+                        {trip.isCancelable && !trip.isCancelled && (
+                            <div className="back-button" style={{ marginTop: '12px' }}>
+                                <button className="btn btn-danger" onClick={() => cancelReservation(trip)} style={marginStyle}>Cancel Reservation</button>
+                            </div>
+                        )}
+                        {trip.isCancelled && (
+                            <div className="back-button" style={{ marginTop: '12px' }}>
+                                <button className="btn btn-outline-primary" onClick={rebookTrip} style={marginStyle}>Rebook</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -66,42 +125,13 @@ export default function UserFlightDetailsPage() {
 
   return (
     <div className="text-center">
-
         <div className="back-panel">
             <div className="booking-menu">
-                <h3>Air Canada: AC317</h3>
-                <h4>YYZ &rarr; LAX</h4>
-                <p align="left">
-                    2 Travellers <br></br>
-                    DEPARTURE - 9:40 AM, September 1, 2026
-                    ARRIVAL - 11:55 AM, September 1, 2026
-                </p>
-                
-                
-
-                <div className="log-in-nav-button">
-                    <button class="btn btn-outline-secondary" style={marginStyle}>Check in</button>
-                </div>
-                <div className="log-in-nav-button">
-                    <button class="btn btn-outline-secondary" style={marginStyle}>View Traveller Information</button>
-                </div>
-                <div className="log-in-nav-button">
-                    <button class="btn btn-outline-secondary" style={marginStyle}>Choose or Change Seats</button>
-                </div>
-                <div className="log-in-nav-button">
-                    <button class="btn btn-outline-secondary" style={marginStyle}>Manage Baggage</button>
-                </div>
-                <div className="log-in-nav-button">
-                    <button class="btn btn-outline-secondary" style={marginStyle}>Change Your Flight</button>
-                </div>
-                <div className="log-in-nav-button">
-                    <button class="btn btn-outline-secondary" style={marginStyle}>Request a Refund</button>
-                </div>
-
+                <h3>Trip details unavailable</h3>
+                <p>Please return to your trips and select an active reservation or cancelled booking.</p>
                 <div className="back-button" onClick={nav_to_my_trips}>
-                    <button class="btn btn-outline-secondary" style={marginStyle}>Back</button>
+                    <button className="btn btn-outline-secondary" style={marginStyle}>Back</button>
                 </div>
-
             </div>
         </div>
     </div>

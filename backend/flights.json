@@ -27,7 +27,7 @@
         {
           "name": "A2",
           "class": "business",
-          "booked": false
+          "booked": true
         },
         {
           "name": "B2",
@@ -37,7 +37,7 @@
         {
           "name": "C2",
           "class": "business",
-          "booked": false
+          "booked": true
         },
         {
           "name": "A3",
@@ -30348,6 +30348,202 @@
           "name": "C10",
           "class": "economy",
           "booked": false
+        },
+        {
+          "name": "D10",
+          "class": "economy",
+          "booked": true
+        }
+      ]
+    },
+    {
+      "flightID": 101,
+      "name": "DA 310",
+      "airline": "Delta Airlines",
+      "origin": "YYZ",
+      "destination": "MBJ",
+      "departureTime": "2026-08-01T05:30:00Z",
+      "arrivalTime": "2026-08-01T10:30:00Z",
+      "price": {
+        "firstClass": 1870,
+        "business": 810,
+        "economy": 355
+      },
+      "seats": [
+        {
+          "name": "A1",
+          "class": "firstClass",
+          "booked": false
+        },
+        {
+          "name": "B1",
+          "class": "firstClass",
+          "booked": true
+        },
+        {
+          "name": "A2",
+          "class": "business",
+          "booked": true
+        },
+        {
+          "name": "B2",
+          "class": "business",
+          "booked": false
+        },
+        {
+          "name": "C2",
+          "class": "business",
+          "booked": true
+        },
+        {
+          "name": "A3",
+          "class": "business",
+          "booked": false
+        },
+        {
+          "name": "B3",
+          "class": "business",
+          "booked": false
+        },
+        {
+          "name": "C3",
+          "class": "business",
+          "booked": false
+        },
+        {
+          "name": "A4",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "B4",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "C4",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "D4",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "A5",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "B5",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "C5",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "D5",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "A6",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "B6",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "C6",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "D6",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "A7",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "B7",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "C7",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "D7",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "A8",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "B8",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "C8",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "D8",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "A9",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "B9",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "C9",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "D9",
+          "class": "economy",
+          "booked": false
+        },
+        {
+          "name": "A10",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "B10",
+          "class": "economy",
+          "booked": true
+        },
+        {
+          "name": "C10",
+          "class": "economy",
+          "booked": true
         },
         {
           "name": "D10",

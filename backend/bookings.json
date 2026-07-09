@@ -4,25 +4,43 @@
       "bookingID": 0,
       "userID": 0,
       "flightID": 0,
-      "seat": "A1"
+      "seat": "A1",
+      "isCancelled": false
     },
     {
       "bookingID": 1,
       "userID": 1,
       "flightID": 0,
-      "seat": "B1"
+      "seat": "B1",
+      "isCancelled": false
     },
     {
       "bookingID": 2,
       "userID": 2,
       "flightID": 12,
-      "seat": "B2"
+      "seat": "B2",
+      "isCancelled": false
     },
     {
       "bookingID": 3,
       "userID": 2,
       "flightID": 12,
-      "seat": "C2"
+      "seat": "C2",
+      "isCancelled": false
+    },
+    {
+      "bookingID": 4,
+      "userID": 0,
+      "flightID": 0,
+      "seat": "C2",
+      "isCancelled": false
+    },
+    {
+      "bookingID": 5,
+      "userID": 0,
+      "flightID": 101,
+      "seat": "A3",
+      "isCancelled": true
     }
   ]
 }
