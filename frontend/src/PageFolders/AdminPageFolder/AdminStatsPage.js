@@ -18,9 +18,9 @@ export default function AdminStatsPage() {
   ];
 
   const FlightRow = ({ f }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fbf8fb', borderRadius: 12, border: '1px solid #efe7ef' }}>
-      <div style={{ width: 44, height: 44, borderRadius: 10, background: '#f3e8ef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-       <h4>&#x2708;</h4>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#fff', borderRadius: 12, border: '1px solid #efe7ef' }}>
+      <div style={{ width: 44, height: 44, borderRadius: 10, background: '#efe8f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c5fbe', fontSize: 20 }}>
+       ✈
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, color: '#111827' }}>{f.title}</div>
@@ -33,7 +33,7 @@ export default function AdminStatsPage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', padding: 20, display: 'flex', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', background: '#fff', padding: 20, display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ background: '#ffffff', borderRadius: 14, padding: 18, boxShadow: '0 6px 18px rgba(2,6,23,0.06)', marginBottom: 18 }}>
           <h3 style={{ margin: 0, marginBottom: 12 }}>Most Popular Flights</h3>
@@ -48,7 +48,7 @@ export default function AdminStatsPage() {
           <h3 style={{ margin: 0, marginBottom: 12 }}>Flights By Time</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {byTime.map(t => (
-              <div key={t.id} style={{ borderRadius: 12, padding: '12px 14px', background: '#fbf8fb', border: '1px solid #efe7ef', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div key={t.id} style={{ borderRadius: 12, padding: '12px 14px', background: '#fff', border: '1px solid #efe7ef', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ fontWeight: 700, color: '#111827' }}>{t.count}</div>
                 <div style={{ fontSize: 13, color: '#6b7280' }}>{t.label}</div>
               </div>
@@ -57,7 +57,7 @@ export default function AdminStatsPage() {
 
           <div style={{ height: 18 }} />
           <h4 style={{ margin: 0, marginBottom: 12 }}>Bookings By Airline</h4>
-          <div style={{ borderRadius: 12, height: 120, background: '#f3e8ef', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+          <div style={{ borderRadius: 12, height: 120, background: '#efe8f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c5fbe' }}>
             Chart / breakdown placeholder
           </div>
         </div>

@@ -31,7 +31,7 @@ export default function AdminHomePage() {
 
   const Item = ({ label, onClick, Icon }) => (
     <button onClick={onClick} className="admin-item" style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '1rem 0', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer' }}>
-      <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+      <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12, color: '#7c5fbe', fontSize: 18 }}>
         {Icon && <Icon />}
       </div>
       <div style={{ flex: 1, color: '#0f1724' }}>{label}</div>
@@ -55,12 +55,12 @@ export default function AdminHomePage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6', padding: 20 }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ background: '#ffffff', borderRadius: 18, padding: '24px 20px', boxShadow: '0 8px 20px rgba(2,6,23,0.08)' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-            <div style={{ width: 140, height: 140, borderRadius: 32, background: '#f6dce6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="74" height="74" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3.5" stroke="#5b2e36" strokeWidth="1.8"/><path d="M5 20c1.5-3.5 6-5 7-5s5.5 1.5 7 5" stroke="#5b2e36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <div style={{ width: 140, height: 140, borderRadius: 32, background: '#efe8f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="74" height="74" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3.5" stroke="#7c5fbe" strokeWidth="1.8"/><path d="M5 20c1.5-3.5 6-5 7-5s5.5 1.5 7 5" stroke="#7c5fbe" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
           </div>
 

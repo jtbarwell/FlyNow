@@ -125,16 +125,17 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: 1100, margin: '0 auto' }}>
-      <h2>Admin Dashboard</h2>
-      <p>Manage flight schedules, pricing, and passenger lists.</p>
-      {message ? <div style={{ background: '#eef7ee', padding: '0.8rem 1rem', borderRadius: 8, marginBottom: '1rem' }}>{message}</div> : null}
+    <div style={{ minHeight: '100vh', padding: '2rem', background: '#fff' }}>
+      <div className="text-center" style={{ maxWidth: 1200, margin: '0 auto', background: '#fff', borderRadius: 20, boxShadow: '0 10px 30px rgba(0,0,0,0.08)', padding: '2rem', border: '1px solid #ece8f3' }}>
+        <h2 style={{ fontWeight: 500, color: '#444', marginBottom: '0.5rem' }}>Admin Dashboard</h2>
+        <p style={{ color: '#555', marginBottom: '1.5rem' }}>Manage flight schedules, pricing, and passenger lists.</p>
+        {message ? <div style={{ background: '#e6dfef', color: '#333', padding: '0.8rem 1rem', borderRadius: 8, marginBottom: '1rem' }}>{message}</div> : null}
 
       <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr 1fr' }}>
-        <div style={{ background: '#fff', padding: '1.3rem', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.08)' }}>
+        <div style={{ background: '#fafafa', padding: '1.3rem', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.08)' }}>
           <h3>Flight Management</h3>
           <label style={{ display: 'block', marginBottom: 8 }}>Select flight</label>
-          <select value={selectedFlightId} onChange={handleFlightSelect} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }}>
+          <select value={selectedFlightId} onChange={handleFlightSelect} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }}>
             {flights.map((flight) => (
               <option key={flight.flightID} value={flight.flightID}>{flight.name}</option>
             ))}
@@ -143,38 +144,38 @@ export default function AdminDashboardPage() {
           <form onSubmit={handleSave} style={{ marginTop: '1rem' }}>
             <div style={{ marginBottom: '0.8rem' }}>
               <label>Flight name</label>
-              <input value={flightName} onChange={(e) => setFlightName(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} />
+              <input value={flightName} onChange={(e) => setFlightName(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} />
             </div>
             <div style={{ display: 'grid', gap: '0.8rem', gridTemplateColumns: '1fr 1fr' }}>
-              <div><label>Origin</label><input value={origin} onChange={(e) => setOrigin(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
-              <div><label>Destination</label><input value={destination} onChange={(e) => setDestination(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
+              <div><label>Origin</label><input value={origin} onChange={(e) => setOrigin(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
+              <div><label>Destination</label><input value={destination} onChange={(e) => setDestination(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
             </div>
             <div style={{ display: 'grid', gap: '0.8rem', gridTemplateColumns: '1fr 1fr', marginTop: '0.8rem' }}>
-              <div><label>Departure</label><input type="datetime-local" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
-              <div><label>Arrival</label><input type="datetime-local" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
+              <div><label>Departure</label><input type="datetime-local" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
+              <div><label>Arrival</label><input type="datetime-local" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
             </div>
             <div style={{ display: 'grid', gap: '0.8rem', gridTemplateColumns: '1fr 1fr 1fr', marginTop: '0.8rem' }}>
-              <div><label>Economy</label><input type="number" value={economyPrice} onChange={(e) => setEconomyPrice(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
-              <div><label>Business</label><input type="number" value={businessPrice} onChange={(e) => setBusinessPrice(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
-              <div><label>First Class</label><input type="number" value={firstClassPrice} onChange={(e) => setFirstClassPrice(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc' }} /></div>
+              <div><label>Economy</label><input type="number" value={economyPrice} onChange={(e) => setEconomyPrice(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
+              <div><label>Business</label><input type="number" value={businessPrice} onChange={(e) => setBusinessPrice(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
+              <div><label>First Class</label><input type="number" value={firstClassPrice} onChange={(e) => setFirstClassPrice(e.target.value)} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }} /></div>
             </div>
             <div style={{ display: 'flex', gap: '0.7rem', marginTop: '1rem' }}>
-              <button type="submit" style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#198754', color: '#fff', cursor: 'pointer' }}>Save Changes</button>
-              <button type="button" onClick={handleCreate} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#0d6efd', color: '#fff', cursor: 'pointer' }}>Create New</button>
-              <button type="button" onClick={handleDelete} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#dc3545', color: '#fff', cursor: 'pointer' }}>Delete</button>
+              <button type="submit" style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Save Changes</button>
+              <button type="button" onClick={handleCreate} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Create New</button>
+              <button type="button" onClick={handleDelete} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Delete</button>
             </div>
           </form>
         </div>
 
-        <div style={{ background: '#fff', padding: '1.3rem', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.08)' }}>
+        <div style={{ background: '#fafafa', padding: '1.3rem', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.08)' }}>
           <h3>Passenger List</h3>
           <p>Select a flight to view passengers checked in or booked.</p>
-          <select value={selectedFlightId} onChange={handleFlightSelect} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #ccc', marginBottom: '0.8rem' }}>
+          <select value={selectedFlightId} onChange={handleFlightSelect} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa', marginBottom: '0.8rem' }}>
             {flights.map((flight) => (
               <option key={flight.flightID} value={flight.flightID}>{flight.name}</option>
             ))}
           </select>
-          <button type="button" onClick={() => handleViewPassengers(selectedFlightId)} style={{ width: '100%', padding: '0.8rem', border: 'none', borderRadius: 8, background: '#6f42c1', color: '#fff', cursor: 'pointer' }}>
+          <button type="button" onClick={() => handleViewPassengers(selectedFlightId)} style={{ width: '100%', padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>
             Load Passenger List
           </button>
 
@@ -200,6 +201,7 @@ export default function AdminDashboardPage() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
