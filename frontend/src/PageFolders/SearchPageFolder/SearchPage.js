@@ -11,8 +11,35 @@ export default function SearchPage() {
     const [returnFlights, setReturnFlights] = useState([]);
     const [outboundIndex, setOutboundIndex] = useState(null);
 
+    // Call the API to get the search results based on the search parameters stored in local storage
+    useEffect(() => {
+        const init = async () => {
+            const savedOrigin = localStorage.getItem('origin') || '';
+            const savedDestination = localStorage.getItem('destination') || '';
+            const savedTripType = localStorage.getItem('trip_type') || 'one-way';
+            const savedDepartureDate = localStorage.getItem('departure_date') || '';
+            const savedReturnDate = localStorage.getItem('return_date') || '';
+            const savedTravellerCount = localStorage.getItem('traveller_count') || '1';
 
-    
+            setOrigin(savedOrigin);
+            setDestination(savedDestination);
+            setTripType(savedTripType);
+            setDepartureDate(savedDepartureDate);
+            setReturnDate(savedReturnDate);
+            setTravellerCount(Number(savedTravellerCount));
+
+            await processSearch({
+                origin: savedOrigin,
+                destination: savedDestination,
+                trip_type: savedTripType,
+                departure_date: savedDepartureDate,
+                return_date: savedReturnDate,
+                traveller_count: Number(savedTravellerCount)
+            });
+        };
+
+        init();
+    }, []);
 
     async function processSearch(overrides = {}) {
         const payload = {
@@ -23,6 +50,33 @@ export default function SearchPage() {
             return_date: overrides.return_date ?? return_date,
             traveller_count: overrides.traveller_count ?? traveller_count
         };
+
+        payload.origin = payload.origin.trim().toUpperCase();
+        payload.destination = payload.destination.trim().toUpperCase();
+
+        if (!payload.origin || !payload.destination) {
+            alert('Please enter both an origin and destination.');
+            return;
+        }
+        if (payload.origin === payload.destination) {
+            alert('Your origin and destination cannot be the same.');
+            return;
+        }
+        if (!payload.departure_date) {
+            alert('Please select a departure date.');
+            return;
+        }
+        if (payload.trip_type === 'round-trip') {
+            if (!payload.return_date) {
+                alert('Please select a return date.');
+                return;
+            }
+            if (payload.return_date < payload.departure_date) {
+                alert('Your return date cannot be before your departure date.');
+                return;
+            }
+        }
+
         // Call the API to get the search results based on the search parameters
         try {
             const res = await fetch("http://localhost:3001/api/search", {
@@ -175,7 +229,6 @@ export default function SearchPage() {
                 <hr></hr>
                 <div className="search-results">
                     <ResultsPanel />
-                    <hr></hr>
                 </div>
             </div>
         </div>
