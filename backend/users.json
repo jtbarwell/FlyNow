@@ -4,6 +4,8 @@
       "userID": 0,
       "email": "john.doe@email.com",
       "password": "$2b$10$jey09n1bcgAe/2YjcXYnfe30hDVT3m184H7niPiMzBPNJvFZ564qy",
+      "firstName": "John",
+      "lastName": "Doe",
       "bookings": [
         0
       ]
@@ -12,6 +14,8 @@
       "userID": 1,
       "email": "jane.doe@email.com",
       "password": "$2b$10$xP2CIgQsmZtpCUx/6L4vg.s8zlz6mC7frktNJIcFh2JHsXnMDKASe",
+      "firstName": "Jane",
+      "lastName": "Doe",
       "bookings": [
         1
       ]
@@ -20,14 +24,19 @@
       "userID": 2,
       "email": "dylan.baker@email.com",
       "password": "$2b$10$IVB3XknC263pfRqpEILD4OJnCt.cpGnNBQxkle/9KvtJFpjtvhZk2",
+      "firstName": "Dylan",
+      "lastName": "Baker",
       "bookings": [
-        2
+        2,
+        3
       ]
     },
     {
       "userID": 3,
       "email": "cam@flynow.com",
       "password": "$2b$10$0vVznl1P38FvbuqqciuVDO5DOpFa1L6lIq1RSmsLFPlJPfHyZN9fq",
+      "firstName": "Camellia",
+      "lastName": "Tran",
       "bookings": []
     }
   ]
