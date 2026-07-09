@@ -36,10 +36,18 @@ await bdb.read();
 await fdb.read();
 await adb.read();
 
+// MISC
+
+// extra space- and case-insensitive equality check for two strings
+function equals(s1,  s2) {
+  if (typeof s1 !== 'string' || typeof s2 !== 'string') return false;
+  return s1.trim().toLowerCase() === s2.trim().toLowerCase();
+}
+
 // LOGIN
 
 async function login(email, password) {
-  const user = udb.data.users.find(u => u.email === email);
+  const user = udb.data.users.find(u => equals(u.email, email));
   if (!user) return null;
 
   const valid = await bcrypt.compare(password, user.password);
@@ -48,6 +56,8 @@ async function login(email, password) {
 
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) return res.json({ valid: false });
+
   const user = await login(email, password);
   if (user) req.session.user = user;
   return res.json({ valid: !!user });
@@ -64,7 +74,7 @@ app.post('/api/logout', (req, res) => {
 // SIGN UP
 
 async function signup(email, password) {
-  const user = udb.data.users.find(u => u.email === email);
+  const user = udb.data.users.find(u => equals(u.email, email));
   if (user) return false;
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -82,6 +92,8 @@ async function signup(email, password) {
 
 app.post('/api/signup', async (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) return res.json({ valid: false });
+
   const valid = await signup(email, password);
   return res.json({ valid });
 });
@@ -89,7 +101,7 @@ app.post('/api/signup', async (req, res) => {
 // ADMIN LOGIN
 
 async function getAdmin(email, password) {
-  const admin = adb.data.admins.find(a => a.email === email);
+  const admin = adb.data.admins.find(a => equals(a.email, email));
   if (!admin) return null;
 
   const valid = await bcrypt.compare(password, admin.password);
@@ -129,7 +141,7 @@ app.post('/api/admin/create', async (req, res) => {
     return res.json({ valid: false, message: 'Passwords do not match.' });
   }
 
-  const existing = adb.data.admins.find(admin => admin.email === email);
+  const existing = adb.data.admins.find(admin => equals(admin.email, email));
   if (existing) {
     return res.json({ valid: false, message: 'An admin account already exists with that email.' });
   }
@@ -151,7 +163,7 @@ app.post('/api/admin/create', async (req, res) => {
 
 app.get('/api/admin/me', requireAdmin, async (req, res) => {
   await adb.read();
-  const admin = adb.data.admins.find(a => a.email === req.session.admin.email);
+  const admin = adb.data.admins.find(a => equals(a.email, req.session.admin.email));
   if (!admin) {
     return res.json({ valid: false, message: 'Admin not found.' });
   }
@@ -289,7 +301,8 @@ app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res
 // SEARCH
 
 function search(origin, destination, departure_date) {
-  const flights = fdb.data.flights.filter(f => f.origin === origin && f.destination === destination && f.departureTime.startsWith(departure_date));
+  const flights = fdb.data.flights.filter(f => equals(f.origin, origin) && equals(f.destination, destination) && 
+                                               f.departureTime.startsWith(departure_date));
   return flights;
 }
 
