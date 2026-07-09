@@ -51,7 +51,7 @@ export default function AdminHomePage() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3v18h18" stroke="#667085" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M7 13v6M12 9v10M17 5v14" stroke="#667085" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
   );
   const IconSettings = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z" stroke="#667085" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06A2 2 0 112.28 16.9l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09c.7 0 1.26-.4 1.51-1a1.65 1.65 0 00-.33-1.82L4.3 4.28A2 2 0 116.13 2.45l.06.06a1.65 1.65 0 001.82.33h.09c.6-.2 1.2-.2 1.8 0h.09a1.65 1.65 0 001.82-.33l.06-.06A2 2 0 1117.72 4.3l-.06.06a1.65 1.65 0 00-.33 1.82v.09c.2.6.2 1.2 0 1.8v.09c.3.9 1 1.5 1.8 1.8h.09a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09c-.7 0-1.26.4-1.51 1z" stroke="#667085" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <h2>&#x2699;</h2>
   );
 
   return (
