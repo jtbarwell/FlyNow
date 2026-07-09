@@ -52,7 +52,7 @@ export default function ConfirmBookingPage() {
                 <div className="booking-menu">
                     <h3>{tripData?.airline}</h3>
                     <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
-                    <h5>{tripData?.trip_type === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellers} Traveller{tripData?.travellers !== 1 ? 's' : ''}</h5>
+                    <h5>{tripData?.tripType === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                     
                     {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (
                         <div className="trip-list">

@@ -1,0 +1,22 @@
+{
+  "admins": [
+    {
+      "adminID": 0,
+      "email": "anar@flynow.com",
+      "fullName": "Ana Ragu",
+      "password": "$2b$10$cZtpTbCxbVH7uL5CNPBIvuhSKOT9sLNgQaOsil.wktqOD5HeB3/te"
+    },
+    {
+      "adminID": 1,
+      "email": "harinem@flynow.com",
+      "fullName": "Harine Murali",
+      "password": "$2b$10$KV4Qupwu7AusOio8RRih1ek2K3IV1bmNzRjAICj3fXz1g.kT072Mu"
+    },
+    {
+      "adminID": 2,
+      "email": "camt@flynow.com",
+      "fullName": "Cam Tran",
+      "password": "$2b$10$980R.C68PdfcN7PzItdsHeOhuEx2lxCD6wgxIuUZ.kYsLkOfbKLlK"
+    }
+  ]
+}

@@ -3,26 +3,54 @@
     {
       "bookingID": 0,
       "userID": 0,
-      "flightID": 0,
-      "seat": "A1"
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "A1"
+          ]
+        }
+      ],
+      "travellers": [],
+      "isCancelled": false
     },
     {
       "bookingID": 1,
       "userID": 1,
-      "flightID": 0,
-      "seat": "B1"
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "B1"
+          ]
+        }
+      ],
+      "travellers": [],
+      "isCancelled": false
     },
     {
       "bookingID": 2,
       "userID": 2,
-      "flightID": 12,
-      "seat": "B2"
-    },
-    {
-      "bookingID": 3,
-      "userID": 2,
-      "flightID": 12,
-      "seat": "C2"
+      "tripType": "one-way",
+      "travellerCount": 2,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 12,
+          "seats": [
+            "B2",
+            "C2"
+          ]
+        }
+      ],
+      "travellers": [],
+      "isCancelled": false
     }
   ]
 }
