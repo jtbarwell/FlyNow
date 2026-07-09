@@ -76,7 +76,7 @@ app.post('/api/logout', (req, res) => {
 
 async function signup(firstName, surname, email, password) {
 
-    function handleAddItem() { return crypto.randomUUID(); }
+    // function handleAddItem() { return crypto.randomUUID(); }
 
     const user = udb.data.users.find(u => u.email === email.toLowerCase());
     if (user) return false;
