@@ -38,6 +38,14 @@
       "firstName": "Camellia",
       "lastName": "Tran",
       "bookings": []
+    },
+    {
+      "userID": 4,
+      "email": "jtbarwell@gmail.com",
+      "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
+      "bookings": [
+        3
+      ]
     }
   ]
 }

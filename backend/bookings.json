@@ -51,6 +51,23 @@
       ],
       "travellers": [],
       "isCancelled": false
+    },
+    {
+      "bookingID": 3,
+      "userID": 4,
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "B2"
+          ]
+        }
+      ],
+      "travellers": [],
+      "isCancelled": false
     }
   ]
 }
