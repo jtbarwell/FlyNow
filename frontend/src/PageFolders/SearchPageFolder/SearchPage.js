@@ -11,36 +11,6 @@ export default function SearchPage() {
     const [returnFlights, setReturnFlights] = useState([]);
     const [outboundIndex, setOutboundIndex] = useState(null);
 
-    // Call the API to get the search results based on the search parameters stored in local storage
-    useEffect(() => {
-        const init = async () => {
-            const savedOrigin = localStorage.getItem('origin') || '';
-            const savedDestination = localStorage.getItem('destination') || '';
-            const savedTripType = localStorage.getItem('trip_type') || 'one-way';
-            const savedDepartureDate = localStorage.getItem('departure_date') || '';
-            const savedReturnDate = localStorage.getItem('return_date') || '';
-            const savedTravellerCount = localStorage.getItem('traveller_count') || '1';
-
-            setOrigin(savedOrigin);
-            setDestination(savedDestination);
-            setTripType(savedTripType);
-            setDepartureDate(savedDepartureDate);
-            setReturnDate(savedReturnDate);
-            setTravellerCount(Number(savedTravellerCount));
-
-            await processSearch({
-                origin: savedOrigin,
-                destination: savedDestination,
-                trip_type: savedTripType,
-                departure_date: savedDepartureDate,
-                return_date: savedReturnDate,
-                traveller_count: Number(savedTravellerCount)
-            });
-        };
-
-        init();
-    }, []);
-
     async function processSearch(overrides = {}) {
         const payload = {
             origin: overrides.origin ?? origin,

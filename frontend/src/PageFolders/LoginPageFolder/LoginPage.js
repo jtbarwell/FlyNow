@@ -51,7 +51,7 @@ export default function LoginPage() {
             <div className="back-panel">
                 <label className="input-box">
                     <p>Email Address</p>
-                    <input className="input-text" type="text" placeholder="" onChange={handleEmailChange} />
+                    <input className="input-text" type="email" placeholder="" onChange={handleEmailChange} />
                 </label>
                 <label className="input-box">
                     <p>Password</p>

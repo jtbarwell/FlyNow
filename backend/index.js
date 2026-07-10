@@ -267,19 +267,6 @@ app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
   return res.json({ valid: true, message: 'Flight deleted successfully' });
 });
 
-async function bookingConfirm(req) {
-  const {bookedFlights, additionalCheckedBags} = req.body;
-  const bookings = [];
-  for (const flight of bookedFlights) {
-    for (const bookedSeat of flight.seats) {
-      const booking = {
-        bookingID: bdb.data.bookings.length,
-        userID: req.session.user.userID,
-        flightID: flight.flightID,
-        seat: bookedSeat,
-        isCancelled: false
-      };
-
 // SEARCH
 
 function search(origin, destination, departure_date) {
@@ -467,7 +454,7 @@ app.get('/api/my-trips', async (req, res) => {
   });
 
   return { status: 200, data: { trips } };
-}
+});
 
 app.get('/api/my-trips', async (req, res) => {
   const result = await viewTrips(req);
@@ -479,7 +466,4 @@ app.get('/api/my-trips', async (req, res) => {
 
 // CANCELBOOKING
 
-
-
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
