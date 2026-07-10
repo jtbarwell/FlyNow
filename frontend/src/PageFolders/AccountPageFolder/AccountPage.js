@@ -3,11 +3,16 @@ import React, { useEffect, useState } from 'react';
 export default function AccountPage() {
 
     const [email, setEmail] = useState('');
+    const [firstName, setFirstName] = useState('');
 
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
+        const storedFirstName = localStorage.getItem('firstName');
         if (storedEmail) {
             setEmail(storedEmail);
+        }
+        if (storedFirstName) {
+            setFirstName(storedFirstName);
         }
     }, []); 
 
@@ -17,25 +22,21 @@ export default function AccountPage() {
 
   return (
     <div className="text-center">
-        <h1 className="display-4">Good Morning, {email}</h1>
-        <p>This is the account page where you can manage your account settings and view your booking history.</p>
+        <h1 className="display-4">My Account</h1>
 
         <div className="back-panel">
-
-
-
-
-            <div className="log-in-nav-button" onClick={nav_to_personal_info}>
-                <button class="btn btn-outline-secondary" style={marginStyle}>Personal Information</button>
+            {/* <h3 className="display-6">Welcome, {firstName}</h3> */}
+            <div className="action-button" onClick={nav_to_personal_info}>
+                <button style={marginStyle}>Personal Information</button>
             </div>
-            <div className="log-in-nav-button" onClick={nav_to_payment_info}>
-                <button class="btn btn-outline-secondary" style={marginStyle}>Payment Information</button>
+            <div className="action-button" onClick={nav_to_payment_info}>
+                <button style={marginStyle}>Payment Information</button>
             </div>
-            <div className="log-in-nav-button" onClick={nav_to_my_trips}>
-                <button class="btn btn-outline-secondary" style={marginStyle}>My Trips</button>
+            <div className="action-button" onClick={nav_to_my_trips}>
+                <button style={marginStyle}>My Trips</button>
             </div>
-            <div className="log-in-nav-button" onClick={nav_to_settings}>
-                <button class="btn btn-outline-secondary" style={marginStyle}>Settings</button>
+            <div className="action-button" onClick={nav_to_settings}>
+                <button style={marginStyle}>Settings</button>
             </div>
         </div>
     </div>

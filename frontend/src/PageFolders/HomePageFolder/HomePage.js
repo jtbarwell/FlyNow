@@ -15,6 +15,22 @@ export default function HomePage() {
     const handleReturnDateChange = (e) => {setReturnDate(e.target.value);}
     const handleTravellerCountChange = (e) => {setTravellerCount(e.target.value);}
 
+    const marginStyle = { margin: '15px 0' };
+
+    const [showSection, setShowSection] = useState(false);
+    useEffect(() => {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        setShowSection(isLoggedIn === 'false');
+    }, []);
+
+    const getGreeting = () => {
+        const hours = new Date().getHours(); // Returns 0-23
+        if (hours < 12) return 'Good morning';
+        if (hours < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
+
+
     function search() {
         // Store the search parameters in local storage and switch to the search page
         localStorage.setItem('origin', origin);
@@ -28,52 +44,28 @@ export default function HomePage() {
 
     return (
         <div className="text-center">
-            <h1 className="display-4">Welcome</h1>
-            <p>This is the home page where you can search for flights!</p>
+            <h1 className="display-4">{getGreeting()}</h1>
 
             <div className="back-panel">
-                <div className="log-in-nav-button" onClick={nav_to_login}>
-                    <button >Log In</button>
-                </div>
 
-                <div className="origin-airport-input">
-                    <p>From</p>
-                    <input className="input-text" type="text" placeholder="Here" onChange={handleOriginChange} />
+                <div className="action-button" onClick={nav_to_search}>
+                    <button style={marginStyle}>Search Flights</button>
                 </div>
-                <div className="destination-airport-input">
-                    <p>To</p>
-                    <input className="input-text" type="text" placeholder="There" onChange={handleDestinationChange} />
-                </div>
-
-                <div className="trip-type-input">
-                    <p>Trip Type</p>
-                    <select className="input-select" onChange={handleTripTypeChange}>
-                        <option value="one-way">One Way</option>
-                        <option value="round-trip">Round Trip</option>
-                    </select>
-                </div>
-
-                <div className="departure-date-input">
-                    <p>Departure Date</p>
-                    <input className="input-date" type="date" onChange={handleDepartureDateChange} />
-                </div>
-                <div className="return-date-input">
-                    <p>Return Date</p>
-                    <input className="input-date" type="date" onChange={handleReturnDateChange} />
-                </div>
-                <div className="traveller-count-input">
-                    <p>Traveller Count</p>
-                    <input className="input-number" type="number" min="1" defaultValue="1" onChange={handleTravellerCountChange} />
-                </div>
-                <div className="search-flights-button" onClick={search}>
-                    <button>Search Flights</button>
-                </div>
+                
+                {/* make conditional - only show up if not logged in */}
+                {showSection && (
+                    <><div className="action-button" onClick={nav_to_login}>
+                        <button style={marginStyle}>Log In</button>
+                    </div><div className="action-button" onClick={nav_to_signup}>
+                            <button style={marginStyle}>Sign Up</button>
+                        </div></>
+                )}
+                {/* ------------------------------------------------ */}
             </div>
         </div>
     );
 }
 
-function nav_to_login() {
-    window.location.href = "/login";
-}
-
+function nav_to_login() {   window.location.href = "/login";    }
+function nav_to_signup() {  window.location.href = "/signup";   }
+function nav_to_search() {  window.location.href = "/search";   }

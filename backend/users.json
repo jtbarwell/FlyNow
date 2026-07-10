@@ -3,7 +3,9 @@
     {
       "userID": 0,
       "email": "john.doe@email.com",
-      "password": "password123",
+      "password": "$2b$10$jey09n1bcgAe/2YjcXYnfe30hDVT3m184H7niPiMzBPNJvFZ564qy",
+      "firstName": "John",
+      "lastName": "Doe",
       "bookings": [
         2,
         3,
@@ -16,7 +18,9 @@
     {
       "userID": 1,
       "email": "jane.doe@email.com",
-      "password": "password123",
+      "password": "$2b$10$xP2CIgQsmZtpCUx/6L4vg.s8zlz6mC7frktNJIcFh2JHsXnMDKASe",
+      "firstName": "Jane",
+      "lastName": "Doe",
       "bookings": [
         1
       ]
@@ -24,7 +28,9 @@
     {
       "userID": 2,
       "email": "dylan.baker@email.com",
-      "password": "Pa$$word1",
+      "password": "$2b$10$IVB3XknC263pfRqpEILD4OJnCt.cpGnNBQxkle/9KvtJFpjtvhZk2",
+      "firstName": "Dylan",
+      "lastName": "Baker",
       "bookings": [
         2,
         3
@@ -33,8 +39,18 @@
     {
       "userID": 3,
       "email": "cam@flynow.com",
-      "password": "Roblox123!",
+      "password": "$2b$10$0vVznl1P38FvbuqqciuVDO5DOpFa1L6lIq1RSmsLFPlJPfHyZN9fq",
+      "firstName": "Camellia",
+      "lastName": "Tran",
       "bookings": []
+    },
+    {
+      "userID": 4,
+      "email": "jtbarwell@gmail.com",
+      "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
+      "bookings": [
+        3
+      ]
     }
   ]
 }
