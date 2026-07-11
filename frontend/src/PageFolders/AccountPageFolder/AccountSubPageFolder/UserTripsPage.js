@@ -22,13 +22,13 @@ export default function UserTripsPage() {
                 }
 
                 const data = await response.json();
-                const serverTrips = data.trips || [];
+                const serverTrips = data.data.trips || [];
                 // compute client-side fallback for isCancelable (use browser time)
                 const enriched = serverTrips.map(t => {
                     const clientIsCancelable = Array.isArray(t.flights) && t.flights.some(f => new Date(f.departureTime) > new Date());
                     return { ...t, isCancelable: !!t.isCancelable || clientIsCancelable };
                 });
-                setTrips(enriched);
+                setTrips(serverTrips);
                 // DEBUG: log trips received from backend and after enrichment
                 console.log('DEBUG: fetched trips (enriched)', enriched);
             } catch (err) {
@@ -77,7 +77,10 @@ export default function UserTripsPage() {
                 <div className="object-panel">
                     <div className="flight-info">
                         <p>{trip.tripType === 'round-trip' ? 'Round Trip' : 'One-Way'} • {trip.travellerCount} Traveller{trip.travellerCount !== 1 ? 's' : ''}</p>
-                        <h5>{firstFlight.origin} &rarr; {lastFlight.destination}</h5>
+                        {trip.tripType === 'one-way' ? 
+                            <h5>{firstFlight.origin} &rarr; {lastFlight.destination}</h5> : 
+                            <h5>{firstFlight.origin} &rarr; {firstFlight.destination} &rarr; {lastFlight.destination}</h5>
+                        }
                         <p>{formatDate(firstFlight.departureTime)}{trip.flights.length > 1 ? ` – ${formatDate(lastFlight.arrivalTime)}` : ''}</p>
                         <p style={{ marginTop: '8px', fontWeight: 'bold' }}>Status: {getTripStatus(trip)}</p>
                         <button className="btn btn-outline-secondary" onClick={() => viewDetails(trip)} style={{ marginTop: '12px' }}>
@@ -102,7 +105,7 @@ export default function UserTripsPage() {
         <div className="text-center">
             <h1 className="display-4">Welcome</h1>
             <p>This is the search page where you can see all the flights that match your searches!</p>
-            <div className="back-button" onClick={nav_to_account}>
+            <div className="back-button" onClick={() => nav_to_account()}>
                 <button className="btn btn-outline-secondary" style={marginStyle}>Back</button>
             </div>
 
@@ -135,14 +138,11 @@ export default function UserTripsPage() {
                     </>
                 )}
                 {!loading && !error && trips.length === 0 && (
-                    <p>No trips found in your trip history.</p>
+                    <p>No trips found in your trip history. loading: {loading.toString()}, error: {error}, trips: {trips.length}</p>
                 )}
             </div>
         </div>
     );
 }
 
-function nav_to_details() {
-    window.location.href = "/account/my-trips/flight-details";
-}
-function nav_to_account()      { window.location.href = "/account";       }
+function nav_to_account()      { window.location.href = "/account"; }

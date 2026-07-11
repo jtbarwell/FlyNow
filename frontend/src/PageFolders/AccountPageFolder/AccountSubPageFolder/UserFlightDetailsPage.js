@@ -54,7 +54,7 @@ export default function UserFlightDetailsPage() {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ bookingIDs: trip.bookingIDs })
+                body: JSON.stringify({ bookingID: trip.tripID })
             });
 
             if (!response.ok) {
@@ -62,9 +62,8 @@ export default function UserFlightDetailsPage() {
                 alert(data?.error || 'Failed to cancel reservation.');
                 return;
             }
-
             const data = await response.json();
-            alert(`Reservation cancelled: ${data.cancelledBookingIDs.join(', ')}`);
+            alert(`Reservation cancelled successfully: ${data.cancelledBookingID}`);
             localStorage.removeItem('selectedTrip');
             window.location.href = '/account/my-trips';
         } catch (err) {
@@ -78,7 +77,10 @@ export default function UserFlightDetailsPage() {
                 <div className="back-panel">
                     <div className="booking-menu">
                         <h3>{trip.tripType === 'round-trip' ? 'Round Trip' : 'Single Trip'}</h3>
-                        <h4>{trip.flights[0]?.origin} &rarr; {trip.flights[trip.flights.length - 1]?.destination}</h4>
+                        {trip.tripType === 'one-way' ? 
+                            <h4>{trip.flights[0]?.origin} &rarr; {trip.flights[trip.flights.length - 1]?.destination}</h4> : 
+                            <h4>{trip.flights[0]?.origin} &rarr; {trip.flights[0]?.destination} &rarr; {trip.flights[trip.flights.length - 1]?.destination}</h4>
+                        }
                         <p align="left">
                             {trip.travellerCount} Traveller{trip.travellerCount !== 1 ? 's' : ''}<br></br>
                             {trip.flights.length} Flight{trip.flights.length !== 1 ? 's' : ''}
@@ -90,7 +92,7 @@ export default function UserFlightDetailsPage() {
                                     <p>{flight.origin} &rarr; {flight.destination}</p>
                                     <p>Depart {formatDate(flight.departureTime)}</p>
                                     <p>Arrive {formatDate(flight.arrivalTime)}</p>
-                                    <p>Seat: {flight.seat}</p>
+                                    <p>Seat(s): {flight.seats.join(', ')}</p>
                                 </div>
                             </div>
                         ))}

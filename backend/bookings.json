@@ -3,44 +3,144 @@
     {
       "bookingID": 0,
       "userID": 0,
-      "flightID": 0,
-      "seat": "A1",
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "A1"
+          ]
+        }
+      ],
       "isCancelled": false
     },
     {
       "bookingID": 1,
       "userID": 1,
-      "flightID": 0,
-      "seat": "B1",
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "B1"
+          ]
+        }
+      ],
       "isCancelled": false
     },
     {
       "bookingID": 2,
       "userID": 2,
-      "flightID": 12,
-      "seat": "B2",
+      "tripType": "one-way",
+      "travellerCount": 2,
+      "additionalCheckedBags": 1,
+      "flights": [
+        {
+          "flightID": 12,
+          "seats": [
+            "B2"
+          ]
+        },
+        {
+          "flightID": 12,
+          "seats": [
+            "C2"
+          ]
+        }
+      ],
       "isCancelled": false
     },
     {
       "bookingID": 3,
-      "userID": 2,
-      "flightID": 12,
-      "seat": "C2",
+      "userID": 0,
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "C2"
+          ]
+        }
+      ],
       "isCancelled": false
     },
     {
       "bookingID": 4,
       "userID": 0,
-      "flightID": 0,
-      "seat": "C2",
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 101,
+          "seats": [
+            "A3"
+          ]
+        }
+      ],
       "isCancelled": false
     },
     {
       "bookingID": 5,
-      "userID": 0,
-      "flightID": 101,
-      "seat": "A3",
+      "userID": 5,
+      "tripType": "round-trip",
+      "travellerCount": 2,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 100,
+          "seats": [
+            "A2",
+            "B2"
+          ]
+        },
+        {
+          "flightID": 13,
+          "seats": [
+            "C1",
+            "D1"
+          ]
+        }
+      ],
+      "isCancelled": false
+    },
+    {
+      "bookingID": 6,
+      "userID": 5,
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 1,
+      "flights": [
+        {
+          "flightID": 101,
+          "seats": [
+            "A8"
+          ]
+        }
+      ],
       "isCancelled": true
+    },
+    {
+      "bookingID": 7,
+      "userID": 5,
+      "tripType": "one-way",
+      "travellerCount": 1,
+      "additionalCheckedBags": 0,
+      "flights": [
+        {
+          "flightID": 0,
+          "seats": [
+            "A4"
+          ]
+        }
+      ],
+      "isCancelled": false
     }
   ]
 }

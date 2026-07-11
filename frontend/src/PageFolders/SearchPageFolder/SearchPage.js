@@ -128,9 +128,19 @@ export default function SearchPage() {
         );
     }
 
+    const airlineLogic =  (flights) => {
+        const airlines = [];
+        for (const flight of flights) {
+            if (!airlines.includes(flight.airline)) {
+                airlines.push(flight.airline);
+            }
+        }
+        return airlines;
+    };
+
     const buildTrip = (flights) => {
         const tripData = {
-            airline: flights[0].airline,
+            airlines: airlineLogic(flights),
             origin: origin,
             destination: destination,
             tripType: trip_type,

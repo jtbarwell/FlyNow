@@ -72,9 +72,6 @@ export default function LoginPage() {
     );
 }
 
-
-
-
 function nav_to_signup() {
     window.location.href = "/signup";
 }

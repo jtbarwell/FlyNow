@@ -13,7 +13,7 @@ export default function SettingsPage() {
             });
             
             if (!res) {
-                alert("An account with that information already exists. Please try again.");
+                alert("Logout unsuccessful. Please try again.");
             } else {
                 window.location.href = "/"; // Redirect to home page after log out
             }

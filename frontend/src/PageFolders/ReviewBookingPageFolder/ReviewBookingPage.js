@@ -5,7 +5,17 @@ export default function ReviewBookingPage() {
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
 
-    useEffect(() => {  
+    useEffect(() => {
+        const loginCheck = async () => {
+            const res = await fetch('http://localhost:3001/api/check-login', {
+                method: 'GET',
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (!data.loggedIn) {
+                window.location.href = "/login";
+            }
+        }
         const fetchData = async () => {
             const savedTripData = localStorage.getItem('tripData');
             if (savedTripData) {setTripData(JSON.parse(savedTripData));}
@@ -15,6 +25,7 @@ export default function ReviewBookingPage() {
             if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
         };
 
+        loginCheck();
         fetchData();
     }, []);
 
@@ -135,7 +146,7 @@ export default function ReviewBookingPage() {
                 <div className="booking-menu">
                     <h2>Review Your Booking Information</h2>
                     <hr></hr>
-                    <h3>{tripData?.airline}</h3>
+                    <h3>{tripData?.airlines.join(' + ')}</h3>
                     <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
                     <h5>{tripData?.tripType === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                     

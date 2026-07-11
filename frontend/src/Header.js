@@ -87,7 +87,10 @@ function Header() {
     };
 
     const logout_click = () => {
-        window.location.href = "/logout";
+        localStorage.setItem('isLoggedIn', 'false');
+        localStorage.removeItem('email');
+        localStorage.removeItem('firstName');
+        window.location.href = "/login";
     };
 
     const firstName = localStorage.getItem('firstName');

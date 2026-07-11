@@ -57,7 +57,7 @@
         {
           "name": "A4",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "B4",

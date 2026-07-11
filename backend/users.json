@@ -7,12 +7,9 @@
       "firstName": "John",
       "lastName": "Doe",
       "bookings": [
-        2,
+        0,
         3,
-        4,
-        5,
-        6,
-        7
+        4
       ]
     },
     {
@@ -32,8 +29,7 @@
       "firstName": "Dylan",
       "lastName": "Baker",
       "bookings": [
-        2,
-        3
+        2
       ]
     },
     {
@@ -48,8 +44,20 @@
       "userID": 4,
       "email": "jtbarwell@gmail.com",
       "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
+      "firstName": "Josh",
+      "lastName": "Barwell",
+      "bookings": []
+    },
+    {
+      "userID": 5,
+      "email": "dylanbaker5353@gmail.com",
+      "password": "$2b$10$QxGwXvCRsiCi5Kj7k.1JBOsuusKfnH7yBGtLPqQXuLCRTfUtKWlv.",
+      "firstName": "Dylan",
+      "lastName": "Baker",
       "bookings": [
-        3
+        5,
+        6,
+        7
       ]
     }
   ]
