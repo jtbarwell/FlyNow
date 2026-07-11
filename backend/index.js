@@ -268,12 +268,35 @@ app.post('/api/admin/flights/new', requireAdmin, async (req, res) => {
   return res.json({ valid: true, message: 'Flight created successfully', flight: newFlight });
 });
 
-app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
+app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res) => {
   await fdb.read();
+  await bdb.read();
+  await udb.read();
   const flightID = Number(req.params.flightID);
-  fdb.data.flights = fdb.data.flights.filter(f => f.flightID !== flightID);
-  await fdb.write();
-  return res.json({ valid: true, message: 'Flight deleted successfully' });
+  const bookings = bdb.data.bookings.filter(b => b.flights.find(f => f.flightID === flightID));
+  console.log(bookings)
+
+  const passengerList = [];
+
+  for (const booking of bookings) {
+    const user = udb.data.users.find(u => u.userID === booking.userID)
+    for (const flightInfo of booking.flights) {
+      if (flightInfo.flightID === flightID) {
+        for (const seat of flightInfo.seats) {
+          passengerList.push({
+            seat,
+            userID: user.userID,
+            bookingID: booking.bookingID,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          });
+        }
+      }
+    }
+  }
+  
+  return res.json({ valid: true, message: 'Passenger list retrieved successfully', body: {passengerList} });
 });
 
 // SEARCH

@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
       navigate('/admin/login');
       return;
     }
-    setPassengers(data.passengers || []);
+    setPassengers(data.body.passengerList || []);
   };
 
   return (
@@ -185,7 +185,7 @@ export default function AdminDashboardPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {passengers.map((passenger) => {
-                  const displayName = passenger.name || passenger.email || 'Passenger';
+                  const displayName = passenger.firstName || passenger.email || 'Passenger';
                   const avatarUrl = `https://avatars.dicebear.com/api/initials/${encodeURIComponent(displayName)}.svg`;
                   return (
                     <div key={`${passenger.bookingID || displayName}-${passenger.seat || 'NA'}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px', background: '#fff', borderRadius: 10, border: '1px solid #efe7ef' }}>

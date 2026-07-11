@@ -124,7 +124,7 @@
           ]
         }
       ],
-      "isCancelled": true
+      "isCancelled": false
     },
     {
       "bookingID": 7,

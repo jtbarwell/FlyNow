@@ -17,6 +17,12 @@
       "email": "camt@flynow.com",
       "fullName": "Cam Tran",
       "password": "$2b$10$980R.C68PdfcN7PzItdsHeOhuEx2lxCD6wgxIuUZ.kYsLkOfbKLlK"
+    },
+    {
+      "adminID": 3,
+      "email": "dylanbaker5353@gmail.com",
+      "fullName": "Dylan Baker",
+      "password": "$2b$10$CMbC9Ic6HfXaaOJK2nHb7eBIGmj/zQ26AI7KsyccD53H6bIaM2BCC"
     }
   ]
 }

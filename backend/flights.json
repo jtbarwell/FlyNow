@@ -3935,12 +3935,12 @@
         {
           "name": "C5",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "D5",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "E5",
@@ -3965,12 +3965,12 @@
         {
           "name": "C6",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "D6",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "E6",
@@ -30365,9 +30365,9 @@
       "departureTime": "2026-08-01T05:30:00Z",
       "arrivalTime": "2026-08-01T10:30:00Z",
       "price": {
-        "firstClass": 1870,
+        "economy": 355,
         "business": 810,
-        "economy": 355
+        "firstClass": 1870
       },
       "seats": [
         {
