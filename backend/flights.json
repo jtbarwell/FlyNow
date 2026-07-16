@@ -72,7 +72,7 @@
         {
           "name": "D4",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "A5",
