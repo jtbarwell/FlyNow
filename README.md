@@ -170,16 +170,16 @@ Project Link: [https://github.com/jtbarwell/FlyNow](https://github.com/jtbarwell
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 <!-- https://github.com/inttter/md-badges?tab=readme-ov-file -->
-[contributors-shield]: https://img.shields.io/github/contributors/jtbarwell/test-repo.svg?style=for-the-badge
-[contributors-url]: https://github.com/jtbarwell/test-repo/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/jtbarwell/test-repo.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/jtbarwell/FlyNow.svg?style=for-the-badge
+[contributors-url]: https://github.com/jtbarwell/FlyNow/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/jtbarwell/FlyNow.svg?style=for-the-badge
 [forks-url]: https://github.com/jtbarwell/test-repo/network/members
-[stars-shield]: https://img.shields.io/github/stars/jtbarwell/test-repo.svg?style=for-the-badge
-[stars-url]: https://github.com/jtbarwell/test-repo/stargazers
-[issues-shield]: https://img.shields.io/github/issues/jtbarwell/test-repo.svg?style=for-the-badge
-[issues-url]: https://github.com/jtbarwell/test-repo/issues
-[license-shield]: https://img.shields.io/github/license/jtbarwell/test-repo.svg?style=for-the-badge
-[license-url]: https://github.com/jtbarwell/test-repo/blob/master/LICENSE.txt
+[stars-shield]: https://img.shields.io/github/stars/jtbarwell/FlyNow.svg?style=for-the-badge
+[stars-url]: https://github.com/jtbarwell/FlyNow/stargazers
+[issues-shield]: https://img.shields.io/github/issues/jtbarwell/FlyNow.svg?style=for-the-badge
+[issues-url]: https://github.com/jtbarwell/FlyNow/issues
+[license-shield]: https://img.shields.io/github/license/jtbarwell/FlyNow.svg?style=for-the-badge
+[license-url]: https://github.com/jtbarwell/FlyNow/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/joshuabarwell
 [product-screenshot]: images/screenshot.png
