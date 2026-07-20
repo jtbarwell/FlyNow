@@ -148,9 +148,17 @@ _For more examples, please refer to the [Documentation](https://example.com)_ --
 <!-- CONTACT -->
 ## Contact
 
-Joshua Barwell (He/Him) - jtbarwell@gmail.com | [Joshua Barwell Linkedin](https://www.linkedin.com/in/joshuabarwell/)
+| Name                          | Email                     | Github                                            | Linkedin                                                                        |
+| :----------------------       | :-----------------------  | :-----------------------                          | :-----------------------                                                        |
+| Joshua Barwell (He/Him)       | jtbarwell@gmail.com       | [jtbarwell](https://github.com/jtbarwell)         | [joshuabarwell](https://www.linkedin.com/in/joshuabarwell/)                     |
+| Dylan Baker (He/Him)          | dylanbaker5353@gmail.com  | [dylanksbaker](https://github.com/dylanksbaker)   | [dylan-baker-9796682a3](https://www.linkedin.com/in/dylan-baker-9796682a3/)     |
+| Joan Chen (She/Her)           | chen7953@mylaurier.ca     | [jdcoco](https://github.com/jdcoco)               |                                                                                 |
+| Camellia Tran (She/Her)       | camelliatran05@gmail.com  | [camelliaatran](https://github.com/camelliaatran) | [camellia-tran-](https://www.linkedin.com/in/camellia-tran-/)                   |
+| Brady Kuzma (He/Him)          | bradykuzma@gmail.com      | [Kuzzi11](https://github.com/Kuzzi11)             | [brady-kuzma](https://www.linkedin.com/in/brady-kuzma/)                         |
+| Jose Benedict Laraya (He/Him) | laraya.benedict@gmail.com | [ben-16176](https://github.com/ben-16176)         | [jose-laraya-8b5735269](https://www.linkedin.com/in/jose-laraya-8b5735269/)     |
+| Ananthika Raguram (She/Her)   | ananthika.ragu@gmail.com  | [anaragu](https://github.com/anaragu)             | [ananthika-raguram](https://www.linkedin.com/in/ananthika-raguram/)             |
+| Harine Murali (She/Her)       | harinems23@gmail.com      | [hairyknee](https://github.com/hairyknee)         | [harine-murali-68a1b22b9](https://www.linkedin.com/in/harine-murali-68a1b22b9/) |
 
-Project Link: [https://github.com/jtbarwell/FlyNow](https://github.com/jtbarwell/FlyNow)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
