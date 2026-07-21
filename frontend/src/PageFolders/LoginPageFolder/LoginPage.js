@@ -31,12 +31,14 @@ export default function LoginPage() {
             });
 
             const data = await res.json();
+            const { valid, firstName } = data;
             
-            if (!data.valid) {
+            if (!valid) {
                 alert("Invalid email or password. Please try again.");
             } else {
                 localStorage.setItem('isLoggedIn', 'true'); // Set login status in local storage
                 localStorage.setItem('email', email); // Store the email in local storage
+                localStorage.setItem('firstName', firstName || ''); // Store the user's first name in local storage
                 window.location.href = "/"; // Redirect to home page after login
             }
         } catch (error) {
