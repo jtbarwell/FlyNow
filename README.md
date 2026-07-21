@@ -98,7 +98,6 @@ To prepare the project, run the following commands:
 ### `npm install concurrently --save-dev`
 ### `npm install bcrypt`
 ### `npm install nodemailer`
-### `npm install dotenv nodemailer`
 \
 Once these are installed, you can start the app.
 
@@ -230,9 +229,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_ --
 
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Bootstrap-url]: https://getbootstrap.com
-
-[Python]: https://img.shields.io/badge/python-295478?style=for-the-badge&logo=python&logoColor=white
-[Python-url]: https://python.org
 
 [BCrypt-url]: https://www.npmjs.com/package/bcrypt-node
 [Nodemailer-url]: https://nodemailer.com/
