@@ -103,6 +103,29 @@ To prepare the project, run the following commands:
 Once these are installed, you can start the app.
 
 
+
+## Setting up the email notification system
+
+The backend sends emails (e.g. via `/api/send-email`) using a Gmail account through Nodemailer. This requires a local `.env` file that is **not** committed to git.
+
+### First-time setup (do this once per machine)
+ 
+1. In the `backend/` folder, copy the template:
+```bash
+   copy .env.example .env
+```
+ 
+2. Open `.env` and fill in the real values:
+```
+   EMAIL_USER=flynow.dev@gmail.com
+   EMAIL_PASS="xxxx xxxx xxxx xxxx"
+```
+   Ask a teammate for the shared "Gmail App Password" — **do not** ask for the Gmail account's real password, and never post the App Password anywhere in the repo, issues, or commit messages.
+ 
+3. Restart the backend. If it's working, you won't see any `Missing credentials` or `EAUTH` errors on startup or when hitting `/api/send-email`.
+
+
+
 ## Available Scripts
 
 In the project directory, you can run:
