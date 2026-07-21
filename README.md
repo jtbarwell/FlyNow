@@ -98,6 +98,7 @@ To prepare the project, run the following commands:
 ### `npm install concurrently --save-dev`
 ### `npm install bcrypt`
 ### `npm install nodemailer`
+### `npm install dotenv nodemailer`
 \
 Once these are installed, you can start the app.
 
