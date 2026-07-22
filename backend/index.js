@@ -4,6 +4,7 @@ import session from 'express-session';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
@@ -33,11 +34,13 @@ const udb = new Low(new JSONFile('users.json'), { users: [] });
 const bdb = new Low(new JSONFile('bookings.json'), { bookings: [] });
 const fdb = new Low(new JSONFile('flights.json'), { flights: [] });
 const adb = new Low(new JSONFile('admins.json'), { admins: [] });
+const rdb = new Low(new JSONFile('resets.json'), { resets: [] });
 
 await udb.read();
 await bdb.read();
 await fdb.read();
 await adb.read();
+await rdb.read();
 
 // LOGIN
 
@@ -100,6 +103,75 @@ app.post('/api/signup', async (req, res) => {
   const valid = await signup(email, password, firstName, surname);
   return res.json({ valid });
 });
+
+// PASSWORD RESET
+
+function generateResetToken() {
+    return crypto.randomBytes(32).toString('hex');  // 64-char hex string
+}
+
+app.post('/api/request-password-reset', async(req, res) => {
+    const { email } = req.body;
+    await udb.read();
+    await rdb.read();
+
+    const user = udb.data.users.find(u => u.email === email);
+
+    if (!user) { return res.json({ success: true, message: 'If the provided email exsists, a reset link has been sent. The link expires in 5 minutes.'}); }
+
+    const token = generateResetToken();
+    const expiresAt = Date.now() + 1000 * 60 * 5 // 5 minutes from now
+
+    rdb.data.resets.push({ token, email, expiresAt, used: false });
+    await rdb.write();
+
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+
+    await sendNotificationEmail(
+        'Reset your FlyNow password',
+        `<p>Hi ${user.firstName},</p>
+            <p>Click the link below to reset your password. This link expires in 30 minutes.</p>
+            <p><a href="${resetLink}">${resetLink}</a></p>
+            <p>If you didn't request this, you can safely ignore this email.</p>`,
+        email
+    );
+
+    return res.json({ success: true, message: 'If the provided email exsists, a reset link has been sent. The link expires in 5 minutes.'})
+});
+
+async function passwordReset(email, password) {
+    const user = udb.data.users.find(u => u.email === email);
+    if (!user) return false;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    user.password = passwordHash;
+    await udb.write();
+
+    return true;
+}
+
+app.post('/api/confirm-password-reset', async(req, res) => {
+    const { token, password } = req.body;
+    await rdb.read();
+
+    if (!token || !password) { return res.status(400).json({ success: false, message: 'Invalid reset request.' }); }
+
+    const resetEntry = rdb.data.resets.find(r => r.token === token);
+    if (!resetEntry)        { return res.status(400).json({ success: false, message: 'Invalid reset request'}); }
+    if (resetEntry.used)    { return res.status(400).json({ success: false, message: 'This reset link has already been used.' }); }
+    if (Date.now() > resetEntry.expiresAt) { return res.status(400).json({ success: false, message: 'This reset link is expired.'}); }
+
+    const success = await passwordReset(resetEntry.email, password);
+    if (!success)           { return res.status(400).json({ success: false, message: 'Could not reset password.' }); }
+
+    resetEntry.used = true;
+    await rdb.write();
+
+    return res.json({ success: true, message: 'Password has been reset successfully.' });
+})
+
+
+
 
 // ADMIN LOGIN
 
@@ -555,41 +627,57 @@ app.get('/api/my-trips', async (req, res) => {
 // EMAIL NOTIFICATION
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
 });
 
-async function sendNotificationEmail(subject, htmlBody, sendTo) {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: sendTo,
-    replyTo: process.env.EMAIL_USER || undefined,
-    subject,
-    html: htmlBody,
+function buildTestEmail({ name }) {
+  return {
+    subject: `New test email from ${name}`,
+    html: `<p>This is a test. Please do not reply to this email.</p>`,
   };
+}
+function buildResetPasswordEmail({ name }) {
+    return {
+        subject: `New Password Reset Request`,
+        html:  `<h2>${name}, a password reset request was created from your account</h2>
+                <p>If this was not you, someone might be using your account. <a href="https://youtu.be/dQw4w9WgXcQ?si=U7rf-khwn84y1GOB">Click this to sign out on all devices<a></p>`
+    }
+}
 
-  await transporter.sendMail(mailOptions);
+const emailTemplates = {
+    testEmail: buildTestEmail,
+    resetPasswordEmail: buildResetPasswordEmail
+}
+
+
+async function sendNotificationEmail(subject, htmlBody, sendTo) {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: sendTo,
+        replyTo: process.env.EMAIL_USER || undefined, subject,
+        html: htmlBody,
+    };
+    await transporter.sendMail(mailOptions);
 }
 
 app.post('/api/send-email', async (req, res) => {
-  const { name, email, message } = req.body;
-
-  try {
-    await sendNotificationEmail(
-      `New test email from ${name || 'FlyNow test page'}`,
-      `<p><strong>Name:</strong> ${name}</p>
-       <p><strong>Email:</strong> ${email}</p>
-       <p><strong>Message:</strong> ${message}</p>`,
-      email
-    );
-    return res.status(200).json({ success: true, message: 'Email sent successfully!' });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: 'Email failed to send' });
-  }
+    const { templateType, to, data } = req.body;
+    const buildTemplate = emailTemplates[templateType];
+    if (!buildTemplate) return res.status(400).json({ success: false, message: `Unknown templateType: ${templateType}` });
+    if (!to) return res.status(400).json({ success: false, message: 'Missing "to" address' });
+    
+    try {
+        const { subject, html } = buildTemplate(data || {});
+        await sendNotificationEmail( subject, html, to);
+        return res.status(200).json({ success: true, message: 'Email sent successfully!' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Email failed to send' });
+    }
 });
 
 

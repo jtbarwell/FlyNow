@@ -18,6 +18,8 @@ import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
 // import PaymentInfoPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/PaymentInfoPage';
 import UserTripsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserTripsPage';
 import SettingsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/SettingsPage';
+import RequestPasswordResetPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/RequestPasswordResetPage';
+import ConfirmPasswordResetPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/ConfirmPasswordResetPage';
 import UserFlightDetailsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserFlightDetailsPage';
 import AdminLoginPage from './PageFolders/AdminPageFolder/AdminLoginPage';
 import AdminHomePage from './PageFolders/AdminPageFolder/AdminHomePage';
@@ -54,6 +56,8 @@ function App() {
                 {/* <Route path="/account/personal-info" element={<PersonalInfoPage />} /> */}
                 {/* <Route path="/account/payment-info" element={<PaymentInfoPage />} /> */}
                 <Route path="/account/settings" element={<SettingsPage />} />
+                <Route path="/account/settings/request-reset-password" element={<RequestPasswordResetPage />} />
+                <Route path="/reset-password" element={<ConfirmPasswordResetPage />} />
                 <Route path="/account/my-trips/flight-details" element={<UserFlightDetailsPage />} />
                 <Route path="/admin/login" element={<AdminLoginPage />} />
                 <Route path="/admin" element={<AdminHomePage />} />
