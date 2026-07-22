@@ -48,7 +48,7 @@ export default function FlightBookingPage() {
         return (
             <div className="booking-menu">
                 <h3>{tripData?.airlines.join(' + ')}</h3>
-                <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
+                <h4 className="make-uppercase">{tripData?.origin} &rarr; {tripData?.destination}</h4>
                 <h5>{tripData?.tripType === 'one-way' ? 'One Way' : 'Round Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                 
                 {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (
