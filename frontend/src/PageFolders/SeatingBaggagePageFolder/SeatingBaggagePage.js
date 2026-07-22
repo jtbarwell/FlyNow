@@ -114,6 +114,25 @@ export default function SeatingBaggagePage() {
         );
     }
 
+    function variableBaggageCost() {
+        let fee = 50;
+        // based on selected flight airline, change the cost per additional checked bag
+        switch (tripData.flights[0].airline) {
+            case "Air Canada":
+                fee = 60;
+                break;
+            case "WestJet":
+                fee = 85;
+                break;
+            case "Delta Airlines":
+                fee = 55;
+                break;
+            default:
+                fee = 50;
+        }
+        return fee;
+    }
+
     function calculateTotalPrice(flights) {
         let totalPrice = 0;
         for (const flight of flights) {
@@ -125,15 +144,32 @@ export default function SeatingBaggagePage() {
                 }
             }
         }
-        return totalPrice + (additionalCheckedBags * 50); // Assuming $50 per additional checked bag
+        return totalPrice + (additionalCheckedBags * variableBaggageCost()); 
     }
+
+    // helper function for getCheckedBaggageCount
+    function getSeatClass(seatName, flight) { 
+        const seatInfo = flight.seats.find(s => s.name === seatName);
+        return seatInfo ? seatInfo.class : null;
+    }
+
+    // 2 for firstClass, 1 for business, 0 for economy
+    function getCheckedBaggageCount() {
+    const seatClasses = selectedSeats.flatMap((seats, index) =>
+        (seats || []).map(seat => getSeatClass(seat, tripData?.flights?.[index]))
+    );
+
+    return seatClasses.includes('firstClass')? 2
+        : seatClasses.includes('business')? 1
+        : 0;
+}
 
     function SeatingAndBaggageMenu() {
         if (!tripData) {
             return <p>Loading trip data...</p>;
         }
-        const includedCheckedBaggage = 1; // Example included checked baggage count
-        const checkedBaggageCost = 50; // Example cost for checked baggage
+
+        const checkedBaggageCost = variableBaggageCost();
         return (
             <div className="booking-menu">
                 <h2>Step 1: Choose Your Seat{tripData?.travellerCount !== 1 ? 's' : ''}</h2>
@@ -165,12 +201,14 @@ export default function SeatingBaggagePage() {
 
                 <br></br>
 
-                <h2>Step 2: Select Baggage Options</h2>
-
+                <h2>Step 2: Baggage Options</h2>
+                <u><h4>Included Items:</h4></u>
                 <h5>Personal item: ✓</h5>
                 <h5>Carry-on bag: ✓</h5>
-                {includedCheckedBaggage ? <h5>{includedCheckedBaggage} checked baggage included per traveller</h5> : ""}
-                <label htmlFor="additional-checked-bags">Additional Checked Bags:</label>
+                <h5>Checked Bags Per Traveller: {getCheckedBaggageCount()}</h5> 
+                <br></br>
+                <h4>Additional Baggage:</h4> 
+                <label htmlFor="additional-checked-bags">${(checkedBaggageCost)} each</label>
                 <input className="input-number" type="number" id="additional-checked-bags" min="0" placeholder="Enter number of additional checked bags" value={additionalCheckedBags} onChange={(e) => setAdditionalCheckedBags(parseInt(e.target.value) || 0)}></input>
 
                 <p>+${ (additionalCheckedBags * checkedBaggageCost).toFixed(2) }</p>
