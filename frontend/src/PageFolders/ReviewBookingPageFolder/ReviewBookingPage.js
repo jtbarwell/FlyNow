@@ -4,6 +4,7 @@ export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [usePoints, setUsePoints] = useState('no');
 
     useEffect(() => {
         const loginCheck = async () => {
@@ -174,6 +175,21 @@ export default function ReviewBookingPage() {
 
                     <div className="trip-price">
                         <h4>Total Price: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
+                    </div>
+
+                    <div className="points-prompt" style={{ marginTop: '10px' }}>
+                        <p>Would you like to use your points on this purchase?</p>
+                        <div>
+                            <button type="button" onClick={() => setUsePoints('yes')} style={{ marginRight: '10px' }}>
+                                Yes
+                            </button>
+                            <button type="button" onClick={() => setUsePoints('no')}>
+                                No
+                            </button>
+                        </div>
+                        <p style={{ marginTop: '5px', fontWeight: 'bold' }}>
+                            Selected: {usePoints === 'yes' ? 'Yes' : 'No'}
+                        </p>
                     </div>
 
                     <hr></hr>
