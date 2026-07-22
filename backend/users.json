@@ -46,7 +46,9 @@
       "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
       "firstName": "Josh",
       "lastName": "Barwell",
-      "bookings": []
+      "bookings": [
+        8
+      ]
     },
     {
       "userID": 5,

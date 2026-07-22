@@ -4,6 +4,9 @@ import session from 'express-session';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import bcrypt from 'bcrypt';
+import nodemailer from 'nodemailer';
+import 'dotenv/config';
+
 
 const app = express();
 const PORT = 3001; 
@@ -49,8 +52,11 @@ async function login(email, password) {
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await login(email, password);
-  if (user) req.session.user = user;
-  return res.json({ valid: !!user });
+  if (user) {
+    req.session.user = user;
+    return res.json({ valid: true, firstName: user.firstName });
+  }
+  return res.json({ valid: false });
 });
 
 app.get('/api/check-login', (req, res) => {
@@ -530,5 +536,49 @@ app.get('/api/my-trips', async (req, res) => {
 });
 
 // CANCELBOOKING
+
+
+
+// EMAIL NOTIFICATION
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+async function sendNotificationEmail(subject, htmlBody, sendTo) {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: sendTo,
+    replyTo: process.env.EMAIL_USER || undefined,
+    subject,
+    html: htmlBody,
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
+app.post('/api/send-email', async (req, res) => {
+  const { name, email, message } = req.body;
+
+  try {
+    await sendNotificationEmail(
+      `New test email from ${name || 'FlyNow test page'}`,
+      `<p><strong>Name:</strong> ${name}</p>
+       <p><strong>Email:</strong> ${email}</p>
+       <p><strong>Message:</strong> ${message}</p>`,
+      email
+    );
+    return res.status(200).json({ success: true, message: 'Email sent successfully!' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Email failed to send' });
+  }
+});
+
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
