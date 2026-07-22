@@ -46,6 +46,11 @@ export default function LoginPage() {
         }
     }
 
+    const handleKeyDown = (event) => {
+        // Check if the pressed key is "Enter"
+        if (event.key === 'Enter') { login(); }
+    };
+
     return (
         <div className="text-center">
             <h1 className="display-4">Login</h1>
@@ -53,11 +58,11 @@ export default function LoginPage() {
             <div className="back-panel">
                 <label className="input-box">
                     <p>Email Address</p>
-                    <input className="input-text" type="email" placeholder="" onChange={handleEmailChange} />
+                    <input className="input-text" type="email" placeholder="" onChange={handleEmailChange} onKeyDown={handleKeyDown} />
                 </label>
                 <label className="input-box">
                     <p>Password</p>
-                    <input className="input-text" type="password" placeholder="" onChange={handlePasswordChange} />
+                    <input className="input-text" type="password" placeholder="" onChange={handlePasswordChange} onKeyDown={handleKeyDown} />
                 </label>
                 <div className="button-row">
                     <div className="action-button" onClick={nav_to_signup}>
