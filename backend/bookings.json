@@ -144,15 +144,15 @@
     },
     {
       "bookingID": 8,
-      "userID": 4,
+      "userID": 6,
       "tripType": "one-way",
       "travellerCount": 1,
-      "additionalCheckedBags": 0,
+      "additionalCheckedBags": 1,
       "flights": [
         {
-          "flightID": 0,
+          "flightID": 100,
           "seats": [
-            "D4"
+            "B6"
           ]
         }
       ],

@@ -61,6 +61,16 @@
         6,
         7
       ]
+    },
+    {
+      "userID": 6,
+      "email": "kuzm6431@mylaurier.ca",
+      "password": "$2b$10$cguZEYKaGscwuX7hraOpjuWaxHmFXoWNfQtF1Pcv3T7Y34gcm0vYa",
+      "firstName": "brady",
+      "lastName": "kuzma",
+      "bookings": [
+        8
+      ]
     }
   ]
 }
