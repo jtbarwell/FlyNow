@@ -11,6 +11,9 @@ import 'dotenv/config';
 const app = express();
 const PORT = 3001; 
 
+const POINTS_REDEMPTION_INCREMENT = 1000; // points per redemption "step"
+const POINTS_REDEMPTION_VALUE = 25;       // dollars discount per redemption step
+
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -66,6 +69,23 @@ app.get('/api/check-login', (req, res) => {
   return res.json({ loggedIn: false });
 });
 
+// LOYALTY POINTS
+
+app.get('/api/user/points', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not logged in' });
+  await udb.read();
+
+  const user = udb.data.users.find(u => u.userID === req.session.user.userID);
+
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  return res.json({
+
+    points: user.points || 0,
+    redemptionIncrement: POINTS_REDEMPTION_INCREMENT,
+    redemptionValue: POINTS_REDEMPTION_VALUE
+  });
+});
+
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
@@ -88,6 +108,7 @@ async function signup(email, password, firstName, lastName) {
     password: passwordHash,
     firstName,
     lastName,
+    points: 0,
     bookings: []
   });
   await udb.write();
@@ -342,12 +363,34 @@ async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
   return totalPrice;
 }
 
+function resolvePointsRedemption(totalPrice, requestedPoints, userPoints) {
+  const requested = Number(requestedPoints) || 0;
+  if (requested < 0 || requested % POINTS_REDEMPTION_INCREMENT !== 0) {
+    return { valid: false, error: `Points must be redeemed in increments of ${POINTS_REDEMPTION_INCREMENT}.` };
+  }
+
+  if (requested > userPoints) {
+    return { valid: false, error: 'You do not have enough points to redeem that amount.' };
+  }
+
+  const maxIncrementsForPrice = Math.floor(totalPrice / POINTS_REDEMPTION_VALUE);
+  const maxPointsForPrice = Math.floor(totalPrice / POINTS_REDEMPTION_VALUE) * POINTS_REDEMPTION_INCREMENT;
+
+  if (requested > maxPointsForPrice) {
+    return { valid: false, error: 'You cannot redeem more points than the total price of the booking.' };
+  }
+
+  const discount = (requested / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_VALUE;
+
+  return { valid: true, pointsRedeemed: requested, discount };
+}
+
 async function handlePayment(payment) {
   // implement payment logic in a full system
   return;
 }
 
-async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, additionalCheckedBags) {
+async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, additionalCheckedBags, totalPrice, pointsRedeemed, discount, finalPrice, pointsEarned) {
   const booking = {
     bookingID: bdb.data.bookings.length,
     userID: userID,
@@ -355,6 +398,11 @@ async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, a
     travellerCount: travellerCount,
     additionalCheckedBags: additionalCheckedBags,
     flights: [],
+    totalPrice: totalPrice,
+    pointsRedeemed: pointsRedeemed,
+    discount: discount,
+    finalPrice: finalPrice,
+    pointsEarned: pointsEarned,
     isCancelled: false
   };
 
@@ -380,7 +428,9 @@ async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, a
   }));
   await bdb.write();
 
-  udb.data.users[userID].bookings.push(booking.bookingID);
+  const user = udb.data.users[userID];
+  user.bookings.push(booking.bookingID);
+  user.points = (user.points || 0) - pointsRedeemed + pointsEarned;
   await udb.write();
 
   return booking;
@@ -391,13 +441,41 @@ app.post('/api/bookingConfirm', async (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
 
-  const { tripType, travellerCount, bookedFlights, additionalCheckedBags } = req.body;
+  const { tripType, travellerCount, bookedFlights, additionalCheckedBags, pointsRedeemed } = req.body;
 
-  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags);
-  await handlePayment(payment);
+  await udb.read();
+  const userID = req.session.user.userID;
+  const user = udb.data.users.find(u => u.userID === userID);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
 
-  const booking = await bookingConfirm(req.session.user.userID, tripType, travellerCount, bookedFlights, additionalCheckedBags);
-  return res.json({ booking });
+  const totalPrice = await calculateBookingPrice(bookedFlights, additionalCheckedBags);
+
+  const redemption = resolvePointsRedemption(totalPrice, pointsRedeemed || 0, user.points || 0);
+  if (!redemption.valid) {
+    return res.status(400).json({ error: redemption.error });
+  }
+
+  const finalPrice = totalPrice - redemption.discount;
+  const pointsEarned = Math.floor(finalPrice); // 1 point per whole dollar actually spent
+
+  await handlePayment(finalPrice);
+
+  const booking = await bookingConfirm(
+    userID,
+    tripType,
+    travellerCount,
+    bookedFlights,
+    additionalCheckedBags,
+    totalPrice,
+    redemption.pointsRedeemed,
+    redemption.discount,
+    finalPrice,
+    pointsEarned
+  );
+
+  return res.json({ booking, pointsBalance: udb.data.users[userID].points });
 });
 
 app.post('/api/cancel-booking', async (req, res) => {
@@ -452,11 +530,19 @@ app.post('/api/cancel-booking', async (req, res) => {
       }
     }
   }
+
+  const user = udb.data.users.find(u => u.userID === userID);
+  if (user) {
+    const pointsEarned = booking.pointsEarned || 0;
+    const pointsRedeemed = booking.pointsRedeemed || 0;
+    user.points = Math.max(0, (user.points || 0) - pointsEarned + pointsRedeemed);
+  }
+
   await bdb.write();
   await udb.write();
   await fdb.write();
 
-  return res.json({ cancelledBookingID: [booking.bookingID] });
+  return res.json({ cancelledBookingID: [booking.bookingID], pointsBalance: user ? user.points : undefined  });
 });
 
 app.get('/api/my-trips', async (req, res) => {
@@ -481,6 +567,11 @@ app.get('/api/my-trips', async (req, res) => {
         tripType: booking.tripType ?? 'one-way',
         additionalCheckedBags: booking.additionalCheckedBags ?? 0,
         travellerCount: booking.travellerCount ?? 1,
+        totalPrice: booking.totalPrice,
+        discount: booking.discount ?? 0,
+        pointsRedeemed: booking.pointsRedeemed ?? 0,
+        finalPrice: booking.finalPrice,
+        pointsEarned: booking.pointsEarned ?? 0,
         flights: [],
         isCancelled: true,
         isCancelable: false

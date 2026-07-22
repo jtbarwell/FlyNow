@@ -99,6 +99,15 @@ export default function UserFlightDetailsPage() {
                         {trip.additionalCheckedBags > 0 && (
                             <p style={{ textAlign: 'left' }}>Additional checked bags: {trip.additionalCheckedBags}</p>
                         )}
+
+                        {trip.finalPrice !== undefined && (
+                            <p style={{ textAlign: 'left' }}>
+                                Total Paid: ${trip.finalPrice.toFixed(2)}
+                                {trip.pointsRedeemed > 0 ? ` (redeemed ${trip.pointsRedeemed.toLocaleString()} pts for -$${trip.discount.toFixed(2)})` : ''}
+                                {trip.pointsEarned > 0 ? ` — earned ${trip.pointsEarned.toLocaleString()} pts` : ''}
+                            </p>
+                        )}
+
                         <p style={{ textAlign: 'left', fontWeight: 'bold' }}>Status: {getTripStatus(trip)}</p>
                         {trip.isCancelled && (
                             <p style={{ textAlign: 'left', color: '#8a2b06' }}>This reservation has already been cancelled.</p>

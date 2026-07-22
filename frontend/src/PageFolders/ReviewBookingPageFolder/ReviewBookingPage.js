@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
+const POINTS_REDEMPTION_INCREMENT = 1000;
+const POINTS_REDEMPTION_VALUE = 25;
+
 export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
-    const [usePoints, setUsePoints] = useState('no');
+    const [userPoints, setUserPoints] = useState(0);
+    const [pointsToRedeem, setPointsToRedeem] = useState(0);
 
     useEffect(() => {
         const loginCheck = async () => {
@@ -26,8 +30,24 @@ export default function ReviewBookingPage() {
             if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
         };
 
+        const fetchPoints = async () => {
+            try {
+                const res = await fetch('http://localhost:3001/api/user/points', {
+                    method: 'GET',
+                    credentials: "include"
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setUserPoints(data.points || 0);
+                }
+            } catch (error) {
+                console.error('Error fetching points balance:', error);
+            }
+        };
+
         loginCheck();
         fetchData();
+        fetchPoints();
     }, []);
 
     function renderFlightInfo(flight, flightIndex) {
@@ -63,6 +83,38 @@ export default function ReviewBookingPage() {
             }
         }
         return totalPrice + (additionalCheckedBags * 50); // Assuming $50 per additional checked bag
+    }
+
+    useEffect(() => {
+        if (!tripData) return;
+        const totalPrice = calculateTotalPrice(tripData.flights);
+        const maxRedeemable = getMaxRedeemablePoints(totalPrice);
+        if (pointsToRedeem > maxRedeemable) {
+            setPointsToRedeem(maxRedeemable);
+        }
+    }, [tripData, additionalCheckedBags, userPoints]);
+
+    function getMaxRedeemablePoints(totalPrice) {
+    // Only whole 1000-point increments, capped by what the user owns and by the order total
+    const maxByBalance = Math.floor(userPoints / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_INCREMENT;
+    const maxByPrice = Math.floor(totalPrice / POINTS_REDEMPTION_VALUE) * POINTS_REDEMPTION_INCREMENT;
+    return Math.max(0, Math.min(maxByBalance, maxByPrice));
+    }
+
+    function getDiscount() {
+        return (pointsToRedeem / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_VALUE;
+    }
+
+    function getFinalPrice(totalPrice) {
+        return Math.max(0, totalPrice - getDiscount());
+    }
+
+    function getPointsToBeEarned(finalPrice) {
+        return Math.floor(finalPrice);
+    }
+
+    function handlePointsRedeemChange(e) {
+        setPointsToRedeem(parseInt(e.target.value));
     }
 
     function getTotalPriceOfLevel(flight, level) {
@@ -113,7 +165,8 @@ export default function ReviewBookingPage() {
               tripType: tripData.tripType,
               travellerCount: tripData.travellerCount,
               bookedFlights,
-              additionalCheckedBags
+              additionalCheckedBags,
+              pointsRedeemed: pointsToRedeem
             };
             
             const res = await fetch("http://localhost:3001/api/bookingConfirm", {
@@ -124,13 +177,22 @@ export default function ReviewBookingPage() {
             });
             const data = await res.json();
             
-            if (!data) {
+            if (!res.ok || !data || data.error) {
                 console.error('Booking failed:', data);
-                alert('Booking failed. Please try again.');
+                alert(data?.error ||'Booking failed. Please try again.');
                 return;
             }
             // Debugging
             console.log("Booking confirmed:", data);
+            // Save the loyalty points summary so the confirmation page can display it
+            localStorage.setItem('lastBookingSummary', JSON.stringify({
+                totalPrice: data.booking.totalPrice,
+                discount: data.booking.discount,
+                finalPrice: data.booking.finalPrice,
+                pointsRedeemed: data.booking.pointsRedeemed,
+                pointsEarned: data.booking.pointsEarned,
+                pointsBalance: data.pointsBalance
+            }));
             // Redirect to confirmation page
             window.location.href = "/confirm-booking";
         } catch (error) {
@@ -174,23 +236,49 @@ export default function ReviewBookingPage() {
                     <PriceBreakdown></PriceBreakdown>
 
                     <div className="trip-price">
-                        <h4>Total Price: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
+                        <h4>Subtotal: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
                     </div>
 
-                    <div className="points-prompt" style={{ marginTop: '10px' }}>
-                        <p>Would you like to use your points on this purchase?</p>
-                        <div>
-                            <button type="button" onClick={() => setUsePoints('yes')} style={{ marginRight: '10px' }}>
-                                Yes
-                            </button>
-                            <button type="button" onClick={() => setUsePoints('no')}>
-                                No
-                            </button>
-                        </div>
-                        <p style={{ marginTop: '5px', fontWeight: 'bold' }}>
-                            Selected: {usePoints === 'yes' ? 'Yes' : 'No'}
-                        </p>
-                    </div>
+                    <hr></hr>
+
+                    <h5>Redeem Loyalty Points</h5>
+                    <p>You have {userPoints.toLocaleString()} points. Redeem {POINTS_REDEMPTION_INCREMENT.toLocaleString()} points for a ${POINTS_REDEMPTION_VALUE} discount.</p>
+                    {tripData && (() => {
+                        const totalPrice = calculateTotalPrice(tripData.flights);
+                        const maxRedeemable = getMaxRedeemablePoints(totalPrice);
+                        const options = [];
+                        for (let p = 0; p <= maxRedeemable; p += POINTS_REDEMPTION_INCREMENT) {
+                            options.push(p);
+                        }
+                        return (
+                            <div className="payment-method-input">
+                                <select value={pointsToRedeem} onChange={handlePointsRedeemChange} disabled={maxRedeemable === 0}>
+                                    {options.map(p => (
+                                        <option key={p} value={p}>
+                                            {p === 0 ? 'Do not redeem points' : `${p.toLocaleString()} points (-$${((p / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_VALUE).toFixed(2)})`}
+                                        </option>
+                                    ))}
+                                </select>
+                                {maxRedeemable === 0 && <p>You don't have enough points to redeem yet.</p>}
+                            </div>
+                        );
+                    })()}
+
+                    <br></br>
+
+                    {tripData && (() => {
+                        const totalPrice = calculateTotalPrice(tripData.flights);
+                        const discount = getDiscount();
+                        const finalPrice = getFinalPrice(totalPrice);
+                        const pointsEarned = getPointsToBeEarned(finalPrice);
+                        return (
+                            <div className="trip-price">
+                                {discount > 0 && <h5>Points Discount: -${discount.toFixed(2)}</h5>}
+                                <h4>Total Price: ${finalPrice.toFixed(2)}</h4>
+                                <p>You will earn {pointsEarned.toLocaleString()} loyalty points from this booking.</p>
+                            </div>
+                        );
+                    })()}
 
                     <hr></hr>
 

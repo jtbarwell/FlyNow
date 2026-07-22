@@ -4,6 +4,7 @@ export default function ConfirmBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [bookingSummary, setBookingSummary] = useState(null);
 
     useEffect(() => {  
         const loginCheck = async () => {
@@ -23,6 +24,8 @@ export default function ConfirmBookingPage() {
             if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
             if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
+            const savedBookingSummary = localStorage.getItem('lastBookingSummary');
+            if (savedBookingSummary) {setBookingSummary(JSON.parse(savedBookingSummary));}
         };
 
         loginCheck();
@@ -80,6 +83,19 @@ export default function ConfirmBookingPage() {
                             <div className="object-panel">
                                 {tripData && renderFlightInfo(tripData?.flights[0] , 0)}
                             </div>
+                        </div>
+                    )}
+
+                    <br></br>
+
+                    {bookingSummary && (
+                        <div className="trip-price">
+                            <h4>Total Paid: ${Number(bookingSummary.finalPrice).toFixed(2)}</h4>
+                            {bookingSummary.pointsRedeemed > 0 && (
+                                <p>You redeemed {bookingSummary.pointsRedeemed.toLocaleString()} points for a ${Number(bookingSummary.discount).toFixed(2)} discount.</p>
+                            )}
+                            <p>You earned {bookingSummary.pointsEarned.toLocaleString()} loyalty points on this booking.</p>
+                            <p>Your new points balance is {bookingSummary.pointsBalance.toLocaleString()}.</p>
                         </div>
                     )}
 
