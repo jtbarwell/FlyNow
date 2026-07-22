@@ -161,48 +161,82 @@ export default function SearchPage() {
 
     const handleOriginChange = (e) => {setOrigin(e.target.value);}
     const handleDestinationChange = (e) => {setDestination(e.target.value);}
-    const handleTripTypeChange = (e) => {setTripType(e.target.value);}
+    const handleTripTypeChange = (e) => {setTripType(e.target.value); setShowSection(e.target.value === 'round-trip');}
     const handleDepartureDateChange = (e) => {setDepartureDate(e.target.value);}
     const handleReturnDateChange = (e) => {setReturnDate(e.target.value);}
     const handleTravellerCountChange = (e) => {setTravellerCount(e.target.value);}
 
+    let [showSection, setShowSection] = useState(trip_type === 'round-trip');
+    const dateFieldStyle = {
+        flex: showSection ? '0 0 calc(50% - 0.5rem)' : '0 0 100%',
+        minWidth: 0
+    };
+
     return (
         <div className="text-center">
+            {/* for checkmarks on trip type */}
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
             <h1 className="display-4">Flight Search</h1>
             <p>This is the search page where you can see all the flights that match your searches!</p>
 
             <div className="back-panel">
                 <div className ="search-menu">
-                    <div className="origin-airport-input">
+                    <div className="input-box">
                         <p>From</p>
                         <input className="input-text" type="text" placeholder="Here" value={origin} onChange={handleOriginChange} />
                     </div>
-                    <div className="destination-airport-input">
+                    <div className="input-box">
                         <p>To</p>
                         <input className="input-text" type="text" placeholder="There" value={destination} onChange={handleDestinationChange} />
                     </div>
+                    <label>Trip Type</label>
+                    <div className="trip-toggle" role="radiogroup">
+                        <input
+                            type="radio" name="tripType"
+                            id="oneWay" value="one-way"
+                            checked={trip_type === 'one-way'}
+                            onChange={handleTripTypeChange}
+                        />
+                        <label htmlFor="oneWay">
+                            <i className="fa-solid fa-check"></i>
+                            One-Way
+                        </label>
 
-                    <div className="trip-type-input">
-                        <p>Trip Type</p>
-                        <select className="input-select" value={trip_type} onChange={handleTripTypeChange}>
-                            <option value="one-way">One Way</option>
-                            <option value="round-trip">Round Trip</option>
-                        </select>
+                        <input
+                            type="radio" name="tripType"
+                            id="roundTrip" value="round-trip"
+                            checked={trip_type === 'round-trip'}
+                            onChange={handleTripTypeChange}
+                        />
+                        <label htmlFor="roundTrip">
+                            <i className="fa-solid fa-check"></i>
+                            Round Trip
+                        </label>
                     </div>
 
-                    <div className="departure-date-input">
-                        <p>Departure Date</p>
-                        <input className="input-date" type="date" value={departure_date} onChange={handleDepartureDateChange} />
+                    <div className="header-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div className="departure-date-input" style={dateFieldStyle}>
+                            <label>Departure Date</label>
+                            <input className="input-date" type="date" value={departure_date} onChange={handleDepartureDateChange} />
+                        </div>
+
+                        {showSection && (
+                            <div className="return-date-input" style={dateFieldStyle}>
+                                <label>Return Date</label>
+                                <input className="input-date" type="date" value={return_date} onChange={handleReturnDateChange} />
+                            </div>
+                        )}
                     </div>
-                    <div className="return-date-input">
-                        <p>Return Date</p>
-                        <input className="input-date" type="date" value={return_date} onChange={handleReturnDateChange} />
-                    </div>
+
+
+
                     <div className="traveller-count-input">
-                        <p>Traveller Count</p>
+                        <label>Traveller Count</label>
                         <input className="input-number" type="number" min="1" value={traveller_count} onChange={handleTravellerCountChange} />
                     </div>
-                    <div className="search-flights-button" onClick={async () => await processSearch()}>
+                    <div className="action-button" onClick={async () => await processSearch()}>
                         <button>Search Flights</button>
                     </div>
                 </div>
