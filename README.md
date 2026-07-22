@@ -96,6 +96,7 @@ The following instructions assume you have [Node.js][Node-url] installed on your
 In this project, we use multiple additional packages not included in the base Node.js install. These include [BCrypt][BCrypt-url], and [Nodemailer][Nodemailer-url]. \
 To prepare the project, run the following commands:
 ### `npm install concurrently --save-dev`
+### `npm install react-router-dom`
 ### `npm install bcrypt`
 ### `npm install nodemailer`
 \
