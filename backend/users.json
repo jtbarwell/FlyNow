@@ -6,6 +6,7 @@
       "password": "$2b$10$jey09n1bcgAe/2YjcXYnfe30hDVT3m184H7niPiMzBPNJvFZ564qy",
       "firstName": "John",
       "lastName": "Doe",
+      "points": 0,
       "bookings": [
         0,
         3,
@@ -18,6 +19,7 @@
       "password": "$2b$10$xP2CIgQsmZtpCUx/6L4vg.s8zlz6mC7frktNJIcFh2JHsXnMDKASe",
       "firstName": "Jane",
       "lastName": "Doe",
+      "points": 0,
       "bookings": [
         1
       ]
@@ -28,6 +30,7 @@
       "password": "$2b$10$IVB3XknC263pfRqpEILD4OJnCt.cpGnNBQxkle/9KvtJFpjtvhZk2",
       "firstName": "Dylan",
       "lastName": "Baker",
+      "points": 0,
       "bookings": [
         2
       ]
@@ -38,6 +41,7 @@
       "password": "$2b$10$0vVznl1P38FvbuqqciuVDO5DOpFa1L6lIq1RSmsLFPlJPfHyZN9fq",
       "firstName": "Camellia",
       "lastName": "Tran",
+      "points": 0,
       "bookings": []
     },
     {
@@ -46,6 +50,7 @@
       "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
       "firstName": "Josh",
       "lastName": "Barwell",
+      "points": 0,
       "bookings": [
         8
       ]
@@ -56,6 +61,7 @@
       "password": "$2b$10$QxGwXvCRsiCi5Kj7k.1JBOsuusKfnH7yBGtLPqQXuLCRTfUtKWlv.",
       "firstName": "Dylan",
       "lastName": "Baker",
+      "points": 0,
       "bookings": [
         5,
         6,
