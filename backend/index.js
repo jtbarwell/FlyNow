@@ -342,7 +342,7 @@ async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
   }
     
   totalPrice += (additionalCheckedBags * 50); // Assuming $50 per additional checked bag, replace with variable
-  totalPrice *= 100 // Convert to cents
+  totalPrice *= 100 // Convert to cents for payment processing
 
   return totalPrice;
 }
