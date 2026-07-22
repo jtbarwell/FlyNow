@@ -30262,7 +30262,7 @@
         {
           "name": "B6",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "C6",
