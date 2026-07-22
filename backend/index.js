@@ -415,6 +415,19 @@ async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
   return totalPrice;
 }
 
+const defaultBaggageCost = 50;
+const baggageCostByAirline = {
+  "Air Canada": 60,
+  "WestJet": 85,
+  "Delta Airlines": 55
+};
+
+app.get('/api/baggage-cost', (req, res) => {
+  const airline = req.query.airline || '';
+  const fee = baggageCostByAirline[airline] ?? defaultBaggageCost;
+  return res.json({ valid: true, fee });
+});
+
 async function handlePayment(payment) {
   // implement payment logic in a full system
   return;
