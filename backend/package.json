@@ -6,9 +6,11 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^4.22.2",
     "express-session": "^1.19.0",
-    "lowdb": "^7.0.1"
+    "lowdb": "^7.0.1",
+    "stripe": "^22.3.2"
   },
   "scripts": {
     "start": "node index.js"

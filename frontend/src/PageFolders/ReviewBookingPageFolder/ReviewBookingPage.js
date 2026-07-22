@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import CheckoutForm from './CheckoutForm';
+
+// Initializing Stripe outside of component render to avoid rebuilding the object
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY): null;
 
 export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [clientSecret, setClientSecret] = useState('');
 
     useEffect(() => {
         const loginCheck = async () => {
@@ -17,12 +24,37 @@ export default function ReviewBookingPage() {
             }
         }
         const fetchData = async () => {
+
             const savedTripData = localStorage.getItem('tripData');
-            if (savedTripData) {setTripData(JSON.parse(savedTripData));}
+            const parsedTripData = savedTripData ? JSON.parse(savedTripData) : null;
+            
             const savedSelectedSeats = localStorage.getItem('selectedSeats');
-            if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
+            const parsedSelectedSeats = savedSelectedSeats ? JSON.parse(savedSelectedSeats) : null;
+            
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
-            if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
+            const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
+
+            // update state so UI stays in sync
+            if (parsedTripData) setTripData(parsedTripData);
+            if (parsedSelectedSeats) setSelectedSeats(parsedSelectedSeats);
+            if (!isNaN(parsedAdditionalCheckedBags)) setAdditionalCheckedBags(parsedAdditionalCheckedBags);
+
+            const bookedFlights = [];
+            for (let i = 0; i < parsedTripData.flights.length; i++) {
+                bookedFlights.push({
+                        flightID: parsedTripData.flights[i].flightID,
+                        seats: parsedSelectedSeats[i] || []
+                    });
+            };
+
+            // Create Payment Intent (payment processing stuff)
+            fetch('http://localhost:3001/api/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookedFlights, additionalCheckedBags: parsedAdditionalCheckedBags}),
+                })
+                .then((res) => res.json())
+                .then((data) => setClientSecret(data.clientSecret));
         };
 
         loginCheck();
@@ -97,45 +129,7 @@ export default function ReviewBookingPage() {
         );
     }
 
-    async function checkout() {
-        try {
-            // Send the booking data to the backend for processing
-            const bookedFlights = [];
-            for (let i = 0; i < tripData.flights.length; i++) {
-                bookedFlights.push(
-                    {
-                        flightID: tripData.flights[i].flightID,
-                        seats: selectedSeats[i]
-                    });
-            };
-            const payload = {
-              tripType: tripData.tripType,
-              travellerCount: tripData.travellerCount,
-              bookedFlights,
-              additionalCheckedBags
-            };
-            
-            const res = await fetch("http://localhost:3001/api/bookingConfirm", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            
-            if (!data) {
-                console.error('Booking failed:', data);
-                alert('Booking failed. Please try again.');
-                return;
-            }
-            // Debugging
-            console.log("Booking confirmed:", data);
-            // Redirect to confirmation page
-            window.location.href = "/confirm-booking";
-        } catch (error) {
-            console.error('Error during checkout:', error);
-        }
-    }
+    const options = { clientSecret };
 
     return (
         <div className="text-center">
@@ -178,20 +172,11 @@ export default function ReviewBookingPage() {
 
                     <hr></hr>
 
-                    <h5>Select payment method</h5>
-                    <div className="payment-method-input">
-                        <select>
-                            <option>Credit Card</option>
-                            <option>Debit Card</option>
-                            <option>PayPal</option>
-                        </select>
-                    </div>
-
-                    <br></br>
-
-                    <div className="checkout-button" onClick={checkout}>
-                        <button>Checkout</button>
-                    </div>
+                    {clientSecret && (
+                        <Elements options={options} stripe={stripePromise}>
+                            <CheckoutForm />
+                        </Elements>
+                     )}
 
                 </div>
             </div>

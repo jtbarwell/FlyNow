@@ -4,6 +4,10 @@ import session from 'express-session';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import Stripe from 'stripe';
+
+dotenv.config();
 
 const app = express();
 const PORT = 3001; 
@@ -35,6 +39,10 @@ await udb.read();
 await bdb.read();
 await fdb.read();
 await adb.read();
+
+console.log(process.env.STRIPE_SECRET_KEY)
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // LOGIN
 
@@ -316,6 +324,8 @@ app.post('/api/search', (req, res) => {
 
 // BOOK
 
+// Payment
+
 async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
   await fdb.read();
 
@@ -332,14 +342,31 @@ async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
   }
     
   totalPrice += (additionalCheckedBags * 50); // Assuming $50 per additional checked bag, replace with variable
+  totalPrice *= 100 // Convert to cents
 
   return totalPrice;
 }
 
-async function handlePayment(payment) {
-  // implement payment logic in a full system
-  return;
-}
+app.post('/api/create-payment-intent', async (req, res) => {
+  const {bookedFlights, additionalCheckedBags} = req.body;
+
+  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags);
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: payment,
+    currency: 'cad',
+    automatic_payment_methods: { enabled:true },
+    metadata: {
+      databaseUserId: req.session.userId
+    }
+  });
+  
+  res.status(200).send({
+    clientSecret: paymentIntent.client_secret
+  })
+});
+
+// Save Booking
 
 async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, additionalCheckedBags) {
   const booking = {
@@ -381,14 +408,9 @@ async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, a
 }
 
 app.post('/api/bookingConfirm', async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Not logged in' });
-  }
+  if (!req.session.user) {return res.status(401).json({ error: 'Not logged in' });}
 
   const { tripType, travellerCount, bookedFlights, additionalCheckedBags } = req.body;
-
-  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags);
-  await handlePayment(payment);
 
   const booking = await bookingConfirm(req.session.user.userID, tripType, travellerCount, bookedFlights, additionalCheckedBags);
   return res.json({ booking });

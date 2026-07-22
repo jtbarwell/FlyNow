@@ -4,8 +4,11 @@ export default function ConfirmBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [alreadyConfirmed, setAlreadyConfirmed] = useState(false);
 
     useEffect(() => {  
+        if (sessionStorage.getItem("alreadyConfirmed") === 'true') return;
+        sessionStorage.setItem("alreadyConfirmed", 'true');
         const loginCheck = async () => {
             const res = await fetch('http://localhost:3001/api/check-login', {
                 method: 'GET',
@@ -18,11 +21,55 @@ export default function ConfirmBookingPage() {
         }
         const fetchData = async () => {
             const savedTripData = localStorage.getItem('tripData');
-            if (savedTripData) {setTripData(JSON.parse(savedTripData));}
+            const parsedTripData = savedTripData ? JSON.parse(savedTripData) : null;
+            
             const savedSelectedSeats = localStorage.getItem('selectedSeats');
-            if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
+            const parsedSelectedSeats = savedSelectedSeats ? JSON.parse(savedSelectedSeats) : null;
+            
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
-            if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
+            const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
+
+            // update state so UI stays in sync
+            if (parsedTripData) setTripData(parsedTripData);
+            if (parsedSelectedSeats) setSelectedSeats(parsedSelectedSeats);
+            if (!isNaN(parsedAdditionalCheckedBags)) setAdditionalCheckedBags(parsedAdditionalCheckedBags);
+
+            if (!parsedTripData || alreadyConfirmed) return;
+
+            const bookedFlights = [];
+            for (let i = 0; i < parsedTripData.flights.length; i++) {
+                bookedFlights.push({
+                        flightID: parsedTripData.flights[i].flightID,
+                        seats: parsedSelectedSeats[i] || []
+                    });
+            };
+
+            try {
+                // Send the booking data to the backend for processing
+                const res = await fetch("http://localhost:3001/api/bookingConfirm", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        tripType: parsedTripData.tripType,
+                        travellerCount: parsedTripData.travellerCount,
+                        bookedFlights,
+                        additionalCheckedBags: parsedAdditionalCheckedBags
+                    })
+                });
+                const data = await res.json();
+                
+                if (!data) {
+                    console.error('Booking failed:', data);
+                    alert('Booking failed. Please try again.');
+                    return;
+                }
+                // Debugging
+                console.log("Booking confirmed:", data);
+                setAlreadyConfirmed(true);
+            } catch (error) {
+                console.error('Error during checkout:', error);
+            }
         };
 
         loginCheck();
@@ -85,7 +132,13 @@ export default function ConfirmBookingPage() {
 
                     <br></br>
 
-                    <div className="return-to-home-button" onClick={navToHome}>
+                    <div className="action-button" onClick={navToTrips}>
+                        <button>View my Trips</button>
+                    </div>
+                    
+                    <br></br>
+
+                    <div className="action-button" onClick={navToHome}>
                         <button>Return to Search</button>
                     </div>
 
@@ -97,4 +150,8 @@ export default function ConfirmBookingPage() {
 
 function navToHome() {
     window.location.href = "/";
+}
+
+function navToTrips() {
+    window.location.href = "/account/my-trips";
 }
