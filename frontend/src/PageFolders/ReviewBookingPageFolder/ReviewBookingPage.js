@@ -259,7 +259,7 @@ export default function ReviewBookingPage() {
                     <h2>Review Your Booking Information</h2>
                     <hr></hr>
                     <h3>{tripData?.airlines.join(' + ')}</h3>
-                    <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
+                    <h4 className="to-uppercase">{tripData?.origin} &rarr; {tripData?.destination}</h4>
                     <h5>{tripData?.tripType === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                     
                     {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (

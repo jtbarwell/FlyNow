@@ -273,7 +273,7 @@ export default function SeatingBaggagePage() {
                 )}
 
                 <br></br>
-
+<hr></hr>
                 <h2>Step 2: Baggage Options</h2>
                 <u><h4>Included Items:</h4></u>
                 <h5>Personal item: ✓</h5>
@@ -286,21 +286,24 @@ export default function SeatingBaggagePage() {
                 <p>+${ (additionalCheckedBags * checkedBaggageCost).toFixed(2) }</p>
                 {tripData?.tripType === 'round-trip' && (
                     <div>
-                        <u><h4>Included Items:</h4></u>
+                        <hr></hr>
+                        <u><h4>Return Trip Included Items:</h4></u>
                         <h5>Personal item: ✓</h5>
                         <h5>Carry-on bag: ✓</h5>
                         <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(1)}</h5> 
                         <br></br>
-                        <h4>Additional Baggage:</h4> 
                         <h4>Return Trip Additional Baggage:</h4> 
                         <label htmlFor="additional-checked-bags-return">${(returnCheckedBaggageCost)} each</label>
                         <input className="input-number" type="number" id="additional-checked-bags-return" min="0" placeholder="Enter number of additional checked bags for return flight" value={additionalCheckedBagsReturn} onChange={(e) => setAdditionalCheckedBagsReturn(parseInt(e.target.value) || 0)}></input>
+                        <p>+${ (additionalCheckedBagsReturn * returnBaggageFee).toFixed(2) }</p>
                     </div>
                 )}
-                <p>+${ (additionalCheckedBagsReturn * returnBaggageFee).toFixed(2) }</p>
+                
 
                 <div className="trip-price">
+                    <hr></hr>
                     <h4>${calculateTotalPrice(tripData?.flights).toFixed(2)}</h4>
+                    <hr></hr>
                 </div>
                 
                 <br></br>
