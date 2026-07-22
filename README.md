@@ -96,13 +96,12 @@ The following instructions assume you have [Node.js][Node-url] installed on your
 In this project, we use multiple additional packages not included in the base Node.js install. These include [BCrypt][BCrypt-url], and [Nodemailer][Nodemailer-url]. \
 To prepare the project, run the following commands:
 ### `npm install concurrently --save-dev`
-### `npm install react-router-dom`
-### `npm install bcrypt`
-### `npm install nodemailer`
+### `npm install react-router-dom bcrypt nodemailer stripe`
+\
+Make sure to run the following command within the `/frontend` directory as well:
+### `npm install @stripe/react-stripe-js @stripe/stripe-js`
 \
 Once these are installed, you can start the app.
-
-
 
 ## Setting up the email notification system
 
@@ -124,7 +123,26 @@ The backend sends emails (e.g. via `/api/send-email`) using a Gmail account thro
  
 3. Restart the backend. If it's working, you won't see any `Missing credentials` or `EAUTH` errors on startup or when hitting `/api/send-email`.
 
+## Setting up the email notification system
 
+The program requires public and secret keys to properly process payment in a test environment. Create a free account at dashboard.stripe.com, select sandbox mode and find your public and secret API keys. **Do not share your API keys with anyone.***
+
+1. In the `frontend/` folder, copy the template:
+```bash
+   copy .env.example .env
+```
+
+2. Now fill in the real values:
+Enter your secret key in `backend/.env`:
+```
+   STRIPE_SECRET_KEY="sk_test_your_secret_key_here"
+```
+Then do the same thing in `frontend/.env` with your publishable key.
+```
+   REACT_APP_STRIPE_PUBLISHABLE_KEY="pk_test_your_publishable_key_here"
+```
+
+3. Restart the backend. If it's working, you won't see any errors on startup.
 
 ## Available Scripts
 
