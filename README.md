@@ -151,7 +151,6 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 * [![JavaScript][JavaScript]][JavaScript-url]
 * [![CSS][CSS]][CSS-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![Python][Python]][Python-url]
 
 
 
