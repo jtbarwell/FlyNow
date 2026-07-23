@@ -157,50 +157,6 @@
         }
       ],
       "isCancelled": false
-    },
-    {
-      "bookingID": 9,
-      "userID": 5,
-      "tripType": "round-trip",
-      "travellerCount": 1,
-      "additionalCheckedBags": 1,
-      "flights": [
-        {
-          "flightID": 0,
-          "seats": [
-            "C7"
-          ]
-        },
-        {
-          "flightID": 61,
-          "seats": [
-            "D4"
-          ]
-        }
-      ],
-      "isCancelled": false
-    },
-    {
-      "bookingID": 10,
-      "userID": 5,
-      "tripType": "round-trip",
-      "travellerCount": 1,
-      "additionalCheckedBags": 1,
-      "flights": [
-        {
-          "flightID": 100,
-          "seats": [
-            "C10"
-          ]
-        },
-        {
-          "flightID": 53,
-          "seats": [
-            "A5"
-          ]
-        }
-      ],
-      "isCancelled": false
     }
   ]
 }
