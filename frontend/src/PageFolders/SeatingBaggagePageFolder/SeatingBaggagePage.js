@@ -91,36 +91,98 @@ export default function SeatingBaggagePage() {
     }
 
     function SeatSelectionMenu({ flight }) {
+        const [seatClass, setSeatClass] = useState('economy');
+
         if (!flight || !flight.seats) {
             return null;
         }
+
         const flightIndex = tripData.flights.indexOf(flight);
         const availableSeats = getAvailableSeats(flight.seats);
         const selectedForFlight = selectedSeats[flightIndex] || [];
 
+        const filteredAvailableSeats = availableSeats.filter(seats => seats.class === seatClass);
+
+        function toggleSeat(seatName) {
+            const isSelected = selectedForFlight.includes(seatName);
+
+            if (isSelected) {
+                handleSeatSelection(
+                    flightIndex,
+                    selectedForFlight.filter((seat) => seat !== seatName)
+                );
+                return;
+            }
+
+            if (selectedForFlight.length >= tripData.travellerCount) {
+                alert(`You can only select up to ${tripData.travellerCount} seat(s).`);
+                return;
+            }
+
+            handleSeatSelection(flightIndex, [
+                ...selectedForFlight,
+                seatName
+            ]);
+        }
+
         return (
             <div className="seat-selection-menu">
+                
                 <h5>Available Seats</h5>
-                <div className="seat-options">
-                    <select 
-                        multiple
-                        value={selectedForFlight} 
-                        onChange={(e) => {
-                        const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
-                        if (selectedOptions.length > tripData.travellerCount) {
-                            alert(`You can only select up to ${tripData.travellerCount} seat(s).`);
-                            return;
-                        }
-                        handleSeatSelection(flightIndex, selectedOptions);
-                    }}>
-                        {availableSeats.map((seat) => (
-                            <option key={seat.name} value={seat.name}>
-                                {seat.name} - ${flight.price[seat.class]?.toFixed(2) || 'N/A'}
-                            </option>
-                        ))}
-                    </select>
-                    <p>Selected Seats: {selectedForFlight.join(', ') || 'None'}</p>
+
+                <div className="trip-toggle" role="buttongroup">
+                    <button
+                        type="button"
+                        className={`seat-class-button ${seatClass === "economy" ? 'selected' : ''}`}
+                        aria-pressed={seatClass === "economy"}
+                        onClick={() => setSeatClass("economy")}
+                    >
+                        <span>Economy</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`seat-class-button ${seatClass === "business" ? 'selected' : ''}`}
+                        aria-pressed={seatClass === "business"}
+                        onClick={() => setSeatClass("business")}
+                    >
+                        <span>Business</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`seat-class-button ${seatClass === "firstClass" ? 'selected' : ''}`}
+                        aria-pressed={seatClass === "firstClass"}
+                        onClick={() => setSeatClass("firstClass")}
+                    >
+                        <span>First Class</span>
+                    </button>
                 </div>
+
+                <hr></hr>
+
+                <div className="seat-options" role="group" aria-label="Available seats">
+                    {filteredAvailableSeats.map((seat) => {
+                        const isSelected = selectedForFlight.includes(seat.name);
+                        const seatPrice = flight.price[seat.class];
+
+                        return (
+                            <button
+                                type="button"
+                                key={seat.name}
+                                className={`seat-button ${isSelected ? 'selected' : ''}`}
+                                aria-pressed={isSelected}
+                                onClick={() => toggleSeat(seat.name)}
+                            >
+                                {seat.name}
+                                <span>
+                                    ${seatPrice?.toFixed(2) || 'N/A'}
+                                </span>
+                            </button>
+                        );
+                    })}
+                    
+                </div>
+                <hr></hr>
+                <h5>Selected Seats: {selectedForFlight.join(', ') || 'None'}</h5>
             </div>
         );
     }
@@ -266,9 +328,12 @@ export default function SeatingBaggagePage() {
                 )}
 
                 <br></br>
-<hr></hr>
+
+                <hr></hr>
                 <h2>Step 2: Baggage Options</h2>
-                <u><h4>Included Items:</h4></u>
+                <hr></hr>
+
+                <u><h4>{tripData.flights[0].name} Included Items:</h4></u>
                 <h5>Personal item: ✓</h5>
                 <h5>Carry-on bag: ✓</h5>
                 <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(0)}</h5> 
@@ -280,7 +345,7 @@ export default function SeatingBaggagePage() {
                 {tripData?.tripType === 'round-trip' && (
                     <div>
                         <hr></hr>
-                        <u><h4>Return Trip Included Items:</h4></u>
+                        <u><h4>{tripData.flights[1].name} Included Items:</h4></u>
                         <h5>Personal item: ✓</h5>
                         <h5>Carry-on bag: ✓</h5>
                         <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(1)}</h5> 
@@ -301,7 +366,7 @@ export default function SeatingBaggagePage() {
                 
                 <br></br>
 
-                <div className="continue-booking-button" onClick={navToReviewBooking}>
+                <div className="action-button" onClick={navToReviewBooking}>
                     <button>Continue</button>
                 </div>
 
