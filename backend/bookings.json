@@ -179,6 +179,28 @@
         }
       ],
       "isCancelled": false
+    },
+    {
+      "bookingID": 10,
+      "userID": 5,
+      "tripType": "round-trip",
+      "travellerCount": 1,
+      "additionalCheckedBags": 1,
+      "flights": [
+        {
+          "flightID": 100,
+          "seats": [
+            "C10"
+          ]
+        },
+        {
+          "flightID": 53,
+          "seats": [
+            "A5"
+          ]
+        }
+      ],
+      "isCancelled": false
     }
   ]
 }

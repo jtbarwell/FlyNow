@@ -324,12 +324,18 @@ app.post('/api/search', (req, res) => {
 
 // BOOK
 
-// Payment
+// Payment/Pricing
 
-async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
+function baggageCostForFlight(flightID) {
+  const flight = fdb.data.flights.find(f => f.flightID === flightID);
+  return baggageCostByAirline[flight.airline]
+}
+
+async function calculateBookingPrice(bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn) {
   await fdb.read();
-
   let totalPrice = 0;
+
+  // Add seat costs
   for (const flightInfo of bookedFlights) {
     const flight = fdb.data.flights.find(f => f.flightID === flightInfo.flightID)
     for (const seat of flightInfo.seats) {
@@ -340,17 +346,35 @@ async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
       }
     }
   }
-    
-  totalPrice += (additionalCheckedBags * 50); // Assuming $50 per additional checked bag, replace with variable
-  totalPrice *= 100 // Convert to cents for payment processing
+
+  // Add baggage costs
+  totalPrice += additionalCheckedBags * baggageCostForFlight(bookedFlights[0].flightID);
+  if (bookedFlights.length === 2) {totalPrice += additionalCheckedBagsReturn * baggageCostForFlight(bookedFlights[1].flightID);}
+  
+  // Convert to cents for payment processing
+  totalPrice *= 100 
 
   return totalPrice;
 }
 
-app.post('/api/create-payment-intent', async (req, res) => {
-  const {bookedFlights, additionalCheckedBags} = req.body;
+const defaultBaggageCost = 50;
+const baggageCostByAirline = {
+  "Air Canada": 60,
+  "WestJet": 85,
+  "Delta Airlines": 55
+};
 
-  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags);
+app.get('/api/baggage-cost', (req, res) => {
+  const airline = req.query.airline || '';
+  const fee = baggageCostByAirline[airline] ?? defaultBaggageCost;
+  return res.json({ valid: true, fee });
+});
+
+
+app.post('/api/create-payment-intent', async (req, res) => {
+  const {bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn} = req.body;
+
+  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn);
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: payment,
