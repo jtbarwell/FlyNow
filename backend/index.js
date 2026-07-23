@@ -175,9 +175,6 @@ app.post('/api/confirm-password-reset', async(req, res) => {
     return res.json({ success: true, message: 'Password has been reset successfully.' });
 })
 
-
-
-
 // ADMIN LOGIN
 
 async function getAdmin(email, password) {
