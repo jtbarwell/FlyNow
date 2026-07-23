@@ -47,7 +47,8 @@
       "firstName": "Josh",
       "lastName": "Barwell",
       "bookings": [
-        8
+        8,
+        9
       ]
     },
     {
