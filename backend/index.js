@@ -4,6 +4,7 @@ import session from 'express-session';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import bcrypt from 'bcrypt';
+import Stripe from 'stripe';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
@@ -41,6 +42,10 @@ await bdb.read();
 await fdb.read();
 await adb.read();
 await rdb.read();
+
+console.log(process.env.STRIPE_SECRET_KEY)
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // LOGIN
 
@@ -169,9 +174,6 @@ app.post('/api/confirm-password-reset', async(req, res) => {
 
     return res.json({ success: true, message: 'Password has been reset successfully.' });
 })
-
-
-
 
 // ADMIN LOGIN
 
@@ -394,10 +396,18 @@ app.post('/api/search', (req, res) => {
 
 // BOOK
 
-async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
-  await fdb.read();
+// Payment/Pricing
 
+function baggageCostForFlight(flightID) {
+  const flight = fdb.data.flights.find(f => f.flightID === flightID);
+  return baggageCostByAirline[flight.airline]
+}
+
+async function calculateBookingPrice(bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn) {
+  await fdb.read();
   let totalPrice = 0;
+
+  // Add seat costs
   for (const flightInfo of bookedFlights) {
     const flight = fdb.data.flights.find(f => f.flightID === flightInfo.flightID)
     for (const seat of flightInfo.seats) {
@@ -408,8 +418,13 @@ async function calculateBookingPrice(bookedFlights, additionalCheckedBags) {
       }
     }
   }
-    
-  totalPrice += (additionalCheckedBags * 50); // Assuming $50 per additional checked bag, replace with variable
+
+  // Add baggage costs
+  totalPrice += additionalCheckedBags * baggageCostForFlight(bookedFlights[0].flightID);
+  if (bookedFlights.length === 2) {totalPrice += additionalCheckedBagsReturn * baggageCostForFlight(bookedFlights[1].flightID);}
+  
+  // Convert to cents for payment processing
+  totalPrice *= 100 
 
   return totalPrice;
 }
@@ -427,10 +442,27 @@ app.get('/api/baggage-cost', (req, res) => {
   return res.json({ valid: true, fee });
 });
 
-async function handlePayment(payment) {
-  // implement payment logic in a full system
-  return;
-}
+
+app.post('/api/create-payment-intent', async (req, res) => {
+  const {bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn} = req.body;
+
+  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn);
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: payment,
+    currency: 'cad',
+    automatic_payment_methods: { enabled:true },
+    metadata: {
+      databaseUserId: req.session.userId
+    }
+  });
+  
+  res.status(200).send({
+    clientSecret: paymentIntent.client_secret
+  })
+});
+
+// Save Booking
 
 async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, additionalCheckedBags) {
   const booking = {
@@ -472,14 +504,9 @@ async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, a
 }
 
 app.post('/api/bookingConfirm', async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Not logged in' });
-  }
+  if (!req.session.user) {return res.status(401).json({ error: 'Not logged in' });}
 
   const { tripType, travellerCount, bookedFlights, additionalCheckedBags } = req.body;
-
-  const payment = await calculateBookingPrice(bookedFlights, additionalCheckedBags);
-  await handlePayment(payment);
 
   const booking = await bookingConfirm(req.session.user.userID, tripType, travellerCount, bookedFlights, additionalCheckedBags);
   return res.json({ booking });

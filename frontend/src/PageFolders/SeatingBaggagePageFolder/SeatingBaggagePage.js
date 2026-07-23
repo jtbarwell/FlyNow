@@ -21,24 +21,16 @@ export default function SeatingBaggagePage() {
         }
         const fetchTripData = async () => { // save trip data to local storage
             const savedTripData = localStorage.getItem('tripData');
-            if (savedTripData) {
-                setTripData(JSON.parse(savedTripData));
-            }
+            if (savedTripData) {setTripData(JSON.parse(savedTripData));}
 
             const savedSelectedSeats = localStorage.getItem('selectedSeats');
-            if (savedSelectedSeats) {
-                setSelectedSeats(JSON.parse(savedSelectedSeats));
-            }
+            if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
 
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
-            if (savedAdditionalCheckedBags !== null) {
-                setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags, 10) || 0);
-            }
+            if (savedAdditionalCheckedBags !== null) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags, 10) || 0);}
 
             const savedAdditionalCheckedBagsReturn = localStorage.getItem('additionalCheckedBagsReturn');
-            if (savedAdditionalCheckedBagsReturn !== null) {
-                setAdditionalCheckedBagsReturn(parseInt(savedAdditionalCheckedBagsReturn, 10) || 0);
-            }
+            if (savedAdditionalCheckedBagsReturn !== null) {setAdditionalCheckedBagsReturn(parseInt(savedAdditionalCheckedBagsReturn, 10) || 0);}
         };
 
         loginCheck();
@@ -89,6 +81,7 @@ export default function SeatingBaggagePage() {
         return true;
     }
 
+    // Save chosen seats and bags then navigate to review booking
     function navToReviewBooking() {
         if (!validSeatSelection()) {return;}
         localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
@@ -234,7 +227,7 @@ export default function SeatingBaggagePage() {
         if (seatClasses.includes('firstClass')) return 2;
         if (seatClasses.includes('business')) return 1;
         return 0;
-}
+    }
 
     function SeatingAndBaggageMenu() {
         if (!tripData) {
