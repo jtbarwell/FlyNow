@@ -204,3 +204,127 @@
     justify-content: center;
     margin-top: 40px;
 }
+
+/* --- The pill toggle itself --- */
+.trip-toggle {
+    --toggle-bg: #ffffff;      /* outer pill background */
+    --toggle-border: #e3ddef;  /* outer pill border */
+    --active-bg: #e6def9;      /* selected segment background */
+    --active-text: #4b2ea0;    /* selected segment text */
+    --inactive-text: #1f1f2e;  /* unselected segment text */
+
+    display: inline-flex;
+    background: var(--toggle-bg);
+    border: 1px solid var(--toggle-border);
+    border-radius: 999px;
+    padding: 4px;
+    width: 100%;
+}
+
+.trip-toggle input[type="radio"] {
+    display: none; /* hide the real radio, we style the label instead */
+}
+
+.trip-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--inactive-text);
+    cursor: pointer;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+}
+
+.trip-toggle label:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+/* When the hidden radio is checked, style its sibling label */
+.trip-toggle input[type="radio"]:checked + label {
+    background: var(--active-bg);
+    color: var(--active-text);
+}
+
+.trip-toggle label .fa-check {
+    font-size: 0.8rem;
+    display: none;
+}
+
+.trip-toggle input[type="radio"]:checked + label .fa-check {
+    display: inline-block;
+}
+
+
+.seat-options {
+	display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+	justify-content: center;
+}
+
+.seat-button {
+    min-width: 70px;
+	font-weight: 600;
+    padding: 10px;
+    border: 1px solid #e3ddef;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.seat-button span {
+    display: block;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.seat-button:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.seat-button.selected {
+    background: #e6def9;
+    border-color: #0d47a1;
+    color: #4b2ea0;
+}
+
+.seat-button.selected span {
+    color: #4b2ea0;
+}
+
+.trip-toggle button {
+    flex: 1;
+    text-align: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--inactive-text);
+	background-color: rgb(255,255,255);
+	border-width: 0;
+    cursor: pointer;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+}
+
+.trip-toggle button:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.trip-toggle button.selected {
+    background: var(--active-bg);
+    color: var(--active-text);
+}
