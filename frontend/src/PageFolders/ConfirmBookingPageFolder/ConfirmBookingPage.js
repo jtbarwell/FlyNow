@@ -29,6 +29,9 @@ export default function ConfirmBookingPage() {
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
             const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
 
+            const savedTravellers = localStorage.getItem('travellers');
+            const parsedTravellers = savedTravellers ? JSON.parse(savedTravellers) : [];
+
             // update state so UI stays in sync
             if (parsedTripData) setTripData(parsedTripData);
             if (parsedSelectedSeats) setSelectedSeats(parsedSelectedSeats);
@@ -54,7 +57,8 @@ export default function ConfirmBookingPage() {
                         tripType: parsedTripData.tripType,
                         travellerCount: parsedTripData.travellerCount,
                         bookedFlights,
-                        additionalCheckedBags: parsedAdditionalCheckedBags
+                        additionalCheckedBags: parsedAdditionalCheckedBags,
+                        travellers: parsedTravellers
                     })
                 });
                 const data = await res.json();

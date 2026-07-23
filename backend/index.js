@@ -521,6 +521,9 @@ app.post('/api/bookingConfirm', async (req, res) => {
   return res.json({ booking });
 });
 
+
+// CANCELBOOKING
+
 app.post('/api/cancel-booking', async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ error: 'Not logged in' });
@@ -758,9 +761,6 @@ app.get('/api/my-trips', async (req, res) => {
 
   return res.json({ status: 200, data: { trips } });
 });
-
-// CANCELBOOKING
-
 
 
 // EMAIL NOTIFICATION

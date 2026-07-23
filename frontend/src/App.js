@@ -18,6 +18,7 @@ import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
 // import PaymentInfoPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/PaymentInfoPage';
 import UserTripsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserTripsPage';
 import SettingsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/SettingsPage';
+import TravellerDetailsPage from './PageFolders/BookingProcessPageFolder/TravellerDetailsPage';
 import RequestPasswordResetPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/RequestPasswordResetPage';
 import ConfirmPasswordResetPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/ConfirmPasswordResetPage';
 import UserFlightDetailsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserFlightDetailsPage';
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/flight-booking" element={<FlightBookingPage />} />
+                <Route path="/traveller-details" element={<TravellerDetailsPage />} />
                 <Route path="/seating-baggage-booking" element={<SeatingBaggagePage />} />
                 <Route path="/review-booking" element={<ReviewBookingPage />} />
                 <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
