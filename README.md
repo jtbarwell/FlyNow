@@ -96,11 +96,63 @@ The following instructions assume you have [Node.js][Node-url] installed on your
 In this project, we use multiple additional packages not included in the base Node.js install. These include [BCrypt][BCrypt-url], and [Nodemailer][Nodemailer-url]. \
 To prepare the project, run the following commands:
 ### `npm install concurrently --save-dev`
-### `npm install bcrypt`
-### `npm install nodemailer`
+### `npm install react-router-dom bcrypt nodemailer stripe`
+\
+Make sure to run the following command within the `/frontend` directory as well:
+### `npm install @stripe/react-stripe-js @stripe/stripe-js`
 \
 Once these are installed, you can start the app.
 
+## Setting up the email notification system
+
+The backend sends emails (e.g. via `/api/send-email`) using a Gmail account through Nodemailer. This requires a local `.env` file that is **not** committed to git.
+
+### First-time setup (do this once per machine)
+ 
+1. In the `backend/` folder, copy the template:
+```bash
+   copy .env.example .env
+```
+ 
+2. Open `.env` and fill in the real values:
+```
+   EMAIL_USER=flynow.dev@gmail.com
+   EMAIL_PASS="xxxx xxxx xxxx xxxx"
+```
+   Ask a teammate for the shared "Gmail App Password" — **do not** ask for the Gmail account's real password, and never post the App Password anywhere in the repo, issues, or commit messages.
+ 
+3. Restart the backend. If it's working, you won't see any `Missing credentials` or `EAUTH` errors on startup or when hitting `/api/send-email`.
+
+## Setting up and using the payment processing system
+
+The program requires public and secret keys to properly process payment in a test environment. Follow the steps below to find your test keys and add them to your test build. This section also includes instructions on how to test the payment system.
+
+### First-time setup (do this once per machine)
+
+1. Create a free account at <a href="https://dashboard.stripe.com">Stripe</a>. Then select sandbox mode and find your public and secret API keys. **Do not share your API keys with anyone.**
+
+2. In the `frontend/` folder, copy the template:
+```bash
+   copy .env.example .env
+```
+
+3. Now fill in the real values:
+Enter your secret key in `backend/.env`:
+```
+   STRIPE_SECRET_KEY="sk_test_your_secret_key_here"
+```
+Then do the same thing in `frontend/.env` with your publishable key.
+```
+   REACT_APP_STRIPE_PUBLISHABLE_KEY="pk_test_your_publishable_key_here"
+```
+
+4. Restart the backend. If it's working, you won't see any errors on startup.
+
+### Payment testing instructions
+
+When checking out in your test build, **do not use your personal financial information**. 
+Instead, enter a testing credit card number like 5555 5555 5555 4444, any future date for the expiration date, and any 3 numbers for the security code.
+Then press "Pay now" and your transaction will go through with no issues.
 
 ## Available Scripts
 
@@ -127,7 +179,6 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 * [![JavaScript][JavaScript]][JavaScript-url]
 * [![CSS][CSS]][CSS-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![Python][Python]][Python-url]
 
 
 
@@ -206,9 +257,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_ --
 
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Bootstrap-url]: https://getbootstrap.com
-
-[Python]: https://img.shields.io/badge/python-295478?style=for-the-badge&logo=python&logoColor=white
-[Python-url]: https://python.org
 
 [BCrypt-url]: https://www.npmjs.com/package/bcrypt-node
 [Nodemailer-url]: https://nodemailer.com/

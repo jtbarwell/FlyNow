@@ -43,7 +43,7 @@
     {
       "userID": 4,
       "email": "jtbarwell@gmail.com",
-      "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
+      "password": "$2b$10$tBDeuWdg30i8fW4hM.kIHu6olr4i5H2YzcLkDIjJHmwp/qd66Vwre",
       "firstName": "Josh",
       "lastName": "Barwell",
       "bookings": [
@@ -60,6 +60,16 @@
         5,
         6,
         7
+      ]
+    },
+    {
+      "userID": 6,
+      "email": "kuzm6431@mylaurier.ca",
+      "password": "$2b$10$cguZEYKaGscwuX7hraOpjuWaxHmFXoWNfQtF1Pcv3T7Y34gcm0vYa",
+      "firstName": "brady",
+      "lastName": "kuzma",
+      "bookings": [
+        8
       ]
     }
   ]

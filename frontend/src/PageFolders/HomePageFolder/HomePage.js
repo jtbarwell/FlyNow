@@ -10,10 +10,12 @@ export default function HomePage() {
     }, []);
 
     const getGreeting = () => {
+        const firstName = localStorage.getItem('firstName');
+        if (!firstName) return 'Welcome!'; // Default greeting if firstName is not available
         const hours = new Date().getHours(); // Returns 0-23
-        if (hours < 12) return 'Good morning';
-        if (hours < 18) return 'Good afternoon';
-        return 'Good evening';
+        if (hours < 12) return 'Good morning ' + firstName;
+        if (hours < 18) return 'Good afternoon ' + firstName;
+        return 'Good evening ' + firstName;
     };
 
     return (

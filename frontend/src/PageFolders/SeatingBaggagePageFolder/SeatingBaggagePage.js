@@ -19,7 +19,7 @@ export default function SeatingBaggagePage() {
                 window.location.href = "/login";
             }
         }
-        const fetchTripData = async () => {
+        const fetchTripData = async () => { // save trip data to local storage
             const savedTripData = localStorage.getItem('tripData');
             if (savedTripData) {setTripData(JSON.parse(savedTripData));}
 
@@ -37,7 +37,7 @@ export default function SeatingBaggagePage() {
         fetchTripData();
     }, []);
 
-    const handleSeatSelection = (flightIndex, seats) => {
+    const handleSeatSelection = (flightIndex, seats) => { 
         // Update the selected seats for the specific flight
         // [[A3, B2], [C1, D4]]
         setSelectedSeats((prevSelectedSeats) => {
@@ -175,6 +175,25 @@ export default function SeatingBaggagePage() {
         loadReturnBaggageFee();
     }, [tripData]);
 
+    // function variableBaggageCost() {
+    //     let fee = 50;
+    //     // based on selected flight airline, change the cost per additional checked bag
+    //     switch (tripData.flights[0].airline) {
+    //         case "Air Canada":
+    //             fee = 60;
+    //             break;
+    //         case "WestJet":
+    //             fee = 85;
+    //             break;
+    //         case "Delta Airlines":
+    //             fee = 55;
+    //             break;
+    //         default:
+    //             fee = 50;
+    //     }
+    //     return fee;
+    // }
+
     function calculateTotalPrice(flights) {
         let totalPrice = 0;
         for (const flight of flights) {
@@ -195,6 +214,8 @@ export default function SeatingBaggagePage() {
         return seatInfo ? seatInfo.class : null;
     }
 
+    // 2 for firstClass, 1 for business, 0 for economy
+
     function getCheckedBaggageCount(flightIndex = 0) {
         const flight = tripData?.flights?.[flightIndex];
         const seats = selectedSeats[flightIndex] || [];
@@ -212,6 +233,7 @@ export default function SeatingBaggagePage() {
         if (!tripData) {
             return <p>Loading trip data...</p>;
         }
+
         const checkedBaggageCost = baggageFee;
         const returnCheckedBaggageCost = returnBaggageFee;
         return (
@@ -244,35 +266,37 @@ export default function SeatingBaggagePage() {
                 )}
 
                 <br></br>
-
-                <h2>Step 2: Select Baggage Options</h2>
-
+<hr></hr>
+                <h2>Step 2: Baggage Options</h2>
                 <u><h4>Included Items:</h4></u>
                 <h5>Personal item: ✓</h5>
                 <h5>Carry-on bag: ✓</h5>
-                <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(0)}</h5>
+                <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(0)}</h5> 
                 <br></br>
                 <h4>Additional Baggage:</h4> 
                 <label htmlFor="additional-checked-bags">${(checkedBaggageCost)} each</label>
                 <input className="input-number" type="number" id="additional-checked-bags" min="0" placeholder="Enter number of additional checked bags" value={additionalCheckedBags} onChange={(e) => setAdditionalCheckedBags(parseInt(e.target.value) || 0)}></input>
-
                 <p>+${ (additionalCheckedBags * checkedBaggageCost).toFixed(2) }</p>
                 {tripData?.tripType === 'round-trip' && (
                     <div>
-                        <u><h4>Included Items:</h4></u>
+                        <hr></hr>
+                        <u><h4>Return Trip Included Items:</h4></u>
                         <h5>Personal item: ✓</h5>
                         <h5>Carry-on bag: ✓</h5>
                         <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(1)}</h5> 
                         <br></br>
-                        <h4>Additional Baggage:</h4>
+                        <h4>Return Trip Additional Baggage:</h4> 
                         <label htmlFor="additional-checked-bags-return">${(returnCheckedBaggageCost)} each</label>
                         <input className="input-number" type="number" id="additional-checked-bags-return" min="0" placeholder="Enter number of additional checked bags for return flight" value={additionalCheckedBagsReturn} onChange={(e) => setAdditionalCheckedBagsReturn(parseInt(e.target.value) || 0)}></input>
+                        <p>+${ (additionalCheckedBagsReturn * returnBaggageFee).toFixed(2) }</p>
                     </div>
                 )}
-                <p>+${ (additionalCheckedBagsReturn * returnBaggageFee).toFixed(2) }</p>
+                
 
                 <div className="trip-price">
+                    <hr></hr>
                     <h4>${calculateTotalPrice(tripData?.flights).toFixed(2)}</h4>
+                    <hr></hr>
                 </div>
                 
                 <br></br>

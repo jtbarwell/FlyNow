@@ -164,6 +164,9 @@
 .action-button {
     flex: 1;
 }
+.to-uppercase {
+    text-transform: uppercase;
+}
 
 .action-button button {
     background-color: #e6dfef;
