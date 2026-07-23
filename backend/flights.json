@@ -3925,7 +3925,7 @@
         {
           "name": "A5",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "B5",
@@ -4135,7 +4135,7 @@
         {
           "name": "A12",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "B12",
@@ -30242,12 +30242,12 @@
         {
           "name": "B5",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "C5",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "D5",

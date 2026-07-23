@@ -77,7 +77,7 @@ export default function FlightBookingPage() {
                 
                 <br></br>
 
-                <div className="continue-booking-button" onClick={nav_to_seating_baggage_booking}>
+                <div className="action-button" onClick={navToTravellerDetails}>
                     <button>Continue</button>
                 </div>
 
@@ -96,49 +96,6 @@ export default function FlightBookingPage() {
     );
 }
 
-function nav_to_seating_baggage_booking() {
-    window.location.href = "/seating-baggage-booking";
+function navToTravellerDetails() {
+    window.location.href = "/traveller-details";
 }
-
-/*
-<div className="booking-menu">
-    <h3>Air Canada</h3>
-    <h4>YYZ &rarr; LAX</h4>
-    <h5>Round Trip - 2 Travellers</h5>
-    
-    <div className="object-panel">
-        <div className="voyage-info">
-            <div className="flight-info">
-                <h5>9:40 AM - 11:55 AM  April 1, 2025</h5>
-                <h6>YYZ - LAX</h6>
-                <p>Flight: AC317</p>
-            </div>
-        </div>
-    </div>
-    <br></br>
-    <div className="object-panel">
-        <div className="voyage-info">
-            <div className="flight-info">
-                <h5>10:10 PM - 2:25 AM  April 2, 2025</h5>
-                <h6>LAX - ORD</h6>
-                <p>Flight: AC270</p>
-            </div>
-            <hr></hr>
-            <div className="flight-info">
-                <h5>8:20 AM - 12:00 PM  April 3, 2025</h5>
-                <p>ORD - YYZ</p>
-                <p>Flight: AC318</p>
-            </div>
-        </div>
-    </div>
-
-    <div className="trip-price">
-        <h4>$1790</h4>
-    </div>
-
-    <div className="continue-booking-button" onClick={nav_to_review_booking}>
-        <button>Continue</button>
-    </div>
-
-</div>
-*/

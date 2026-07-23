@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function SeatingBaggagePage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
+    const [travellers, setTravellers] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
     const [additionalCheckedBagsReturn, setAdditionalCheckedBagsReturn] = useState(0);
     const [baggageFee, setBaggageFee] = useState(50);
@@ -26,6 +27,9 @@ export default function SeatingBaggagePage() {
             const savedSelectedSeats = localStorage.getItem('selectedSeats');
             if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
 
+            const savedTravellers = localStorage.getItem('travellers');
+            if (savedTravellers) {setTravellers(JSON.parse(savedTravellers));}
+
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
             if (savedAdditionalCheckedBags !== null) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags, 10) || 0);}
 
@@ -37,12 +41,14 @@ export default function SeatingBaggagePage() {
         fetchTripData();
     }, []);
 
-    const handleSeatSelection = (flightIndex, seats) => { 
+    const handleSeatSelection = (flightIndex, travellerIndex, seatName) => { 
         // Update the selected seats for the specific flight
         // [[A3, B2], [C1, D4]]
         setSelectedSeats((prevSelectedSeats) => {
             const updatedSeats = [...(prevSelectedSeats || [])];
-            updatedSeats[flightIndex] = seats;
+            const forFlight = [...(updatedSeats[flightIndex] || [])];
+            forFlight[travellerIndex] = seatName;
+            updatedSeats[flightIndex] = forFlight;
             return updatedSeats;
         });
     };
@@ -73,9 +79,11 @@ export default function SeatingBaggagePage() {
     function validSeatSelection() {
         for (let i = 0; i < tripData.flights.length; i++) {
             const selectedForFlight = selectedSeats[i] || [];
-            if (selectedForFlight.length < tripData.travellerCount) {
-                alert(`Please select ${tripData.travellerCount} seat(s) for flight ${i + 1}.`);
-                return false;
+            for (let t = 0; t < tripData.travellerCount; t++) {
+                if (!selectedForFlight[t]) {
+                    alert(`Please select a seat for every traveller on flight ${i + 1}.`);
+                    return false;
+                }
             }
         }
         return true;
@@ -92,6 +100,7 @@ export default function SeatingBaggagePage() {
 
     function SeatSelectionMenu({ flight }) {
         const [seatClass, setSeatClass] = useState('economy');
+        const [activeSeatForAssignment, setActiveSeatForAssignment] = useState(null);
 
         if (!flight || !flight.seats) {
             return null;
@@ -103,27 +112,56 @@ export default function SeatingBaggagePage() {
 
         const filteredAvailableSeats = availableSeats.filter(seats => seats.class === seatClass);
 
-        function toggleSeat(seatName) {
-            const isSelected = selectedForFlight.includes(seatName);
+        const getTravellerName = (travellerIndex) => {
+            const traveller = travellers[travellerIndex];
+            return traveller ? `${traveller.firstName} ${traveller.lastName}` : 'Unknown';
+        };
 
-            if (isSelected) {
-                handleSeatSelection(
-                    flightIndex,
-                    selectedForFlight.filter((seat) => seat !== seatName)
-                );
-                return;
-            }
+        const getAssignedTravellerIndex = (seatName) => {
+            return selectedForFlight.findIndex((name) => name === seatName);
+        };
 
-            if (selectedForFlight.length >= tripData.travellerCount) {
-                alert(`You can only select up to ${tripData.travellerCount} seat(s).`);
-                return;
-            }
+        const getTravellerOptionsForSeat = (seatName) => {
+            return travellers
+                .map((traveller, index) => ({
+                    traveller,
+                    index,
+                    assignedSeat: selectedForFlight[index]
+                }))
+                .filter(({ assignedSeat }) => assignedSeat === seatName || !assignedSeat);
+        };
 
-            handleSeatSelection(flightIndex, [
-                ...selectedForFlight,
-                seatName
-            ]);
-        }
+        const assignSeatToTraveller = (seatName, travellerIndex) => {
+            setSelectedSeats((prevSelectedSeats) => {
+                const updatedSeats = [...(prevSelectedSeats || [])];
+                const flightSeats = [...(updatedSeats[flightIndex] || Array(tripData.travellerCount).fill(''))];
+
+                // Clear this seat if already assigned to someone else
+                const existingTraveller = flightSeats.findIndex((name) => name === seatName);
+                if (existingTraveller >= 0) {
+                    flightSeats[existingTraveller] = '';
+                }
+
+                flightSeats[travellerIndex] = seatName;
+                updatedSeats[flightIndex] = flightSeats;
+                return updatedSeats;
+            });
+            setActiveSeatForAssignment(null);
+        };
+
+        const unassignSeat = (seatName) => {
+            setSelectedSeats((prevSelectedSeats) => {
+                const updatedSeats = [...(prevSelectedSeats || [])];
+                const flightSeats = [...(updatedSeats[flightIndex] || Array(tripData.travellerCount).fill(''))];
+                const travellerIndex = flightSeats.findIndex((name) => name === seatName);
+                if (travellerIndex >= 0) {
+                    flightSeats[travellerIndex] = '';
+                }
+                updatedSeats[flightIndex] = flightSeats;
+                return updatedSeats;
+            });
+            setActiveSeatForAssignment(null);
+        };
 
         return (
             <div className="seat-selection-menu">
@@ -161,22 +199,47 @@ export default function SeatingBaggagePage() {
 
                 <div className="seat-options" role="group" aria-label="Available seats">
                     {filteredAvailableSeats.map((seat) => {
-                        const isSelected = selectedForFlight.includes(seat.name);
-                        const seatPrice = flight.price[seat.class];
+                        const assignedTravellerIndex = getAssignedTravellerIndex(seat.name);
+                        const assignedLabel = assignedTravellerIndex >= 0
+                            ? getTravellerName(assignedTravellerIndex)
+                            : null;
 
                         return (
-                            <button
-                                type="button"
-                                key={seat.name}
-                                className={`seat-button ${isSelected ? 'selected' : ''}`}
-                                aria-pressed={isSelected}
-                                onClick={() => toggleSeat(seat.name)}
-                            >
-                                {seat.name}
-                                <span>
-                                    ${seatPrice?.toFixed(2) || 'N/A'}
-                                </span>
-                            </button>
+                            <div className="seat-card" key={seat.name} style={{ position: 'relative' }}>
+                                <button
+                                    type="button"
+                                    className={`seat-button ${assignedTravellerIndex >= 0 ? 'selected' : ''}`}
+                                    aria-pressed={assignedTravellerIndex >= 0}
+                                    onClick={() => setActiveSeatForAssignment(seat.name)}
+                                >
+                                    {seat.name}
+                                    
+                                    <span>{assignedLabel ? assignedLabel : `$${flight.price[seat.class]?.toFixed(2)}` || 'N/A'}</span>
+                                </button>
+
+                                {activeSeatForAssignment === seat.name && (
+                                    <div className="seat-dropdown-overlay">
+                                        <select
+                                            value={assignedTravellerIndex >= 0 ? assignedTravellerIndex : ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '') {
+                                                    unassignSeat(seat.name);
+                                                } else {
+                                                    assignSeatToTraveller(seat.name, parseInt(value, 10));
+                                                }
+                                            }}
+                                        >
+                                            <option value="">Assign traveller / unassign</option>
+                                            {getTravellerOptionsForSeat(seat.name).map(({ traveller, index }) => (
+                                                <option key={index} value={index}>
+                                                    {traveller.firstName} {traveller.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
                         );
                     })}
                     

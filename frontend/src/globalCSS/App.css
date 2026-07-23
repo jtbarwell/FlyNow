@@ -328,3 +328,24 @@
     background: var(--active-bg);
     color: var(--active-text);
 }
+
+.seat-card {
+    position: relative;
+}
+
+.seat-dropdown-overlay {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    min-width: 220px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+}
+
+.seat-dropdown-overlay select {
+    width: 100%;
+}

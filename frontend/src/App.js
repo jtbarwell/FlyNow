@@ -18,7 +18,7 @@ import AccountPage from './PageFolders/AccountPageFolder/AccountPage';
 // import PaymentInfoPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/PaymentInfoPage';
 import UserTripsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserTripsPage';
 import SettingsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/SettingsPage';
-import TravellerDetailsPage from './PageFolders/TravellerDetailsPageFolder/TravellerDetailsPage';
+import TravellerDetailsPage from './PageFolders/BookingProcessPageFolder/TravellerDetailsPage';
 import RequestPasswordResetPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/RequestPasswordResetPage';
 import ConfirmPasswordResetPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/ConfirmPasswordResetPage';
 import UserFlightDetailsPage from './PageFolders/AccountPageFolder/AccountSubPageFolder/UserFlightDetailsPage';
