@@ -6,8 +6,8 @@
       "airline": "Air Canada",
       "origin": "YYZ",
       "destination": "YVR",
-      "departureTime": "2026-08-10T05:30",
-      "arrivalTime": "2026-08-10T10:30",
+      "departureTime": "2026-08-10T01:30",
+      "arrivalTime": "2026-08-10T05:30",
       "price": {
         "economy": 355,
         "business": 810,
@@ -202,12 +202,12 @@
       "airline": "Air Canada",
       "origin": "YVR",
       "destination": "YYZ",
-      "departureTime": "2026-08-10T07:00:00Z",
-      "arrivalTime": "2026-08-10T12:00:00Z",
+      "departureTime": "2026-08-10T03:00:00Z",
+      "arrivalTime": "2026-08-10T09:00:00Z",
       "price": {
-        "firstClass": 2860,
+        "economy": 545,
         "business": 1235,
-        "economy": 545
+        "firstClass": 2860
       },
       "seats": [
         {

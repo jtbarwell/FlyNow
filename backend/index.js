@@ -347,6 +347,33 @@ app.post('/api/admin/flights/new', requireAdmin, async (req, res) => {
   return res.json({ valid: true, message: 'Flight created successfully', flight: newFlight });
 });
 
+app.post('/api/admin/flights/upload', requireAdmin, async (req, res) => {
+  const { flights } = req.body;
+  await fdb.read();
+
+  for (const flight of flights) {
+    const newFlight = {
+      flightID: fdb.data.flights.length,
+      name: flight.name,
+      airline: flight.airline,
+      origin: flight.origin,
+      destination: flight.destination,
+      departureTime: flight.departureTime,
+      arrivalTime: flight.arrivalTime,
+      price: {
+        economy: Number(flight.price?.economy),
+        business: Number(flight.price?.business),
+        firstClass: Number(flight.price?.firstClass)
+      },
+      seats: flight.seats
+    };
+    fdb.data.flights.push(newFlight);
+  }
+  
+  await fdb.write();
+  return res.json({ valid: true, message: 'Flights created successfully', flights });
+});
+
 app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res) => {
   await fdb.read();
   await bdb.read();

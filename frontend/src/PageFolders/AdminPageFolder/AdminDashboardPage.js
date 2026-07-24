@@ -12,6 +12,8 @@ export default function AdminDashboardPage() {
   const [economyPrice, setEconomyPrice] = useState('');
   const [businessPrice, setBusinessPrice] = useState('');
   const [firstClassPrice, setFirstClassPrice] = useState('');
+  const [uploadFile, setUploadFile] = useState(null);
+  const [fileContent, setFileContent] = useState('');
   const [message, setMessage] = useState('');
   const [passengers, setPassengers] = useState([]);
   const navigate = useNavigate();
@@ -36,12 +38,26 @@ export default function AdminDashboardPage() {
     loadFlights();
   }, []);
 
+  const formatDateTime = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) return '';
+    const pad = (value) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  const unformatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return '';
+    // dateTimeString is "YYYY-MM-DDTHH:MM" : Convert to ISO with Z suffix
+    return `${dateTimeString}:00Z`;
+  };
+
   const populateForm = (flight) => {
     setFlightName(flight.name || '');
     setOrigin(flight.origin || '');
     setDestination(flight.destination || '');
-    setDepartureTime(flight.departureTime || '');
-    setArrivalTime(flight.arrivalTime || '');
+    setDepartureTime(formatDateTime(flight.departureTime));
+    setArrivalTime(formatDateTime(flight.arrivalTime));
     setEconomyPrice(flight.price?.economy ?? '');
     setBusinessPrice(flight.price?.business ?? '');
     setFirstClassPrice(flight.price?.firstClass ?? '');
@@ -65,8 +81,8 @@ export default function AdminDashboardPage() {
         name: flightName,
         origin,
         destination,
-        departureTime,
-        arrivalTime,
+        departureTime: unformatDateTime(departureTime),
+        arrivalTime: unformatDateTime(arrivalTime),
         price: {
           economy: Number(economyPrice),
           business: Number(businessPrice),
@@ -88,8 +104,8 @@ export default function AdminDashboardPage() {
         name: flightName,
         origin,
         destination,
-        departureTime,
-        arrivalTime,
+        departureTime: unformatDateTime(departureTime),
+        arrivalTime: unformatDateTime(arrivalTime),
         price: {
           economy: Number(economyPrice),
           business: Number(businessPrice),
@@ -110,6 +126,47 @@ export default function AdminDashboardPage() {
     const data = await response.json();
     setMessage(data.message || 'Flight removed');
     loadFlights();
+  };
+
+  const handleFileChange = (event) => {
+    setUploadFile(event.target.files?.[0] || null);
+  };
+
+  const handleUpload = async () => {
+    if (!uploadFile) {
+      setMessage('Please select a JSON file first.');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    // Triggered when file reading finishes successfully
+    reader.onload = async (e) => {
+      setFileContent(e.target.result);
+
+      try {
+        const fileData = JSON.parse(e.target.result)
+
+        const response = await fetch('http://localhost:3001/api/admin/flights/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({flights: fileData.flights})
+        });
+
+        const data = await response.json();
+        setMessage(data.message || 'File uploaded');
+        loadFlights();
+      } catch (err) {
+        setMessage('Invalid JSON file.');
+        console.error(err);
+      }
+    };
+
+    reader.onerror = (e) => console.error("Error reading file:", e);
+
+    // Read the file structure as a plain text string
+    reader.readAsText(uploadFile);
   };
 
   const handleViewPassengers = async (flightID) => {
@@ -134,12 +191,15 @@ export default function AdminDashboardPage() {
       <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr 1fr' }}>
         <div style={{ background: '#fafafa', padding: '1.3rem', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.08)' }}>
           <h3>Flight Management</h3>
+
           <label style={{ display: 'block', marginBottom: 8 }}>Select flight</label>
           <select value={selectedFlightId} onChange={handleFlightSelect} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa' }}>
             {flights.map((flight) => (
-              <option key={flight.flightID} value={flight.flightID}>{flight.name}</option>
+              <option key={flight.flightID} value={flight.flightID}>{flight.flightID} : {flight.name}</option>
             ))}
           </select>
+
+          <hr></hr>
 
           <form onSubmit={handleSave} style={{ marginTop: '1rem' }}>
             <div style={{ marginBottom: '0.8rem' }}>
@@ -164,6 +224,19 @@ export default function AdminDashboardPage() {
               <button type="button" onClick={handleCreate} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Create New</button>
               <button type="button" onClick={handleDelete} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Delete</button>
             </div>
+            <hr></hr>
+            <div style={{ marginTop: '1rem' }}>
+              <input
+                type="file"
+                className="custom-file-input"
+                accept=".json,application/json"
+                onChange={handleFileChange}
+                style={{ width: '100%', marginBottom: '0.8rem' }}
+              />
+              <button type="button" onClick={handleUpload} style={{ width: '100%', padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>
+                Upload Flight JSON
+              </button>
+            </div>
           </form>
         </div>
 
@@ -172,7 +245,7 @@ export default function AdminDashboardPage() {
           <p>Select a flight to view passengers checked in or booked.</p>
           <select value={selectedFlightId} onChange={handleFlightSelect} style={{ width: '100%', padding: '0.7rem', borderRadius: 8, border: '1px solid #d8c9ea', background: '#f3ebfa', marginBottom: '0.8rem' }}>
             {flights.map((flight) => (
-              <option key={flight.flightID} value={flight.flightID}>{flight.name}</option>
+              <option key={flight.flightID} value={flight.flightID}>{flight.flightID} : {flight.name}</option>
             ))}
           </select>
           <button type="button" onClick={() => handleViewPassengers(selectedFlightId)} style={{ width: '100%', padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>

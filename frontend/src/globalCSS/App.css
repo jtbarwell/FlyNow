@@ -349,3 +349,27 @@
 .seat-dropdown-overlay select {
     width: 100%;
 }
+
+/* Container styling */
+.custom-file-input {
+  color: #333;
+  font-family: sans-serif;
+}
+
+/* Button specific styling */
+.custom-file-input::file-selector-button {
+  background-color: #dbccff;
+  color: #576379;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 12px;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover state for the button */
+.custom-file-input::file-selector-button:hover {
+  background-color: #4b2ea0;
+  color: white;
+}
