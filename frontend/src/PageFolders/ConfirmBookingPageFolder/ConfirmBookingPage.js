@@ -4,6 +4,8 @@ export default function ConfirmBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [additionalCheckedBagsReturn, setAdditionalCheckedBagsReturn] = useState(0);
+    const [bookingSummary, setBookingSummary] = useState(null);
     const [alreadyConfirmed, setAlreadyConfirmed] = useState(false);
 
     useEffect(() => {  
@@ -29,6 +31,15 @@ export default function ConfirmBookingPage() {
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
             const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
 
+            const savedAdditionalCheckedBagsReturn = localStorage.getItem('additionalCheckedBagsReturn');
+            const parsedAdditionalCheckedBagsReturn = savedAdditionalCheckedBagsReturn ? parseInt(savedAdditionalCheckedBagsReturn) : 0;
+
+            const savedBookingSummary = localStorage.getItem('activeBookingPointsSummary');
+            if (savedBookingSummary) {
+                setBookingSummary(JSON.parse(savedBookingSummary));
+                localStorage.removeItem('activeBookingPointsSummary');
+            }
+
             const savedTravellers = localStorage.getItem('travellers');
             const parsedTravellers = savedTravellers ? JSON.parse(savedTravellers) : [];
 
@@ -36,6 +47,7 @@ export default function ConfirmBookingPage() {
             if (parsedTripData) setTripData(parsedTripData);
             if (parsedSelectedSeats) setSelectedSeats(parsedSelectedSeats);
             if (!isNaN(parsedAdditionalCheckedBags)) setAdditionalCheckedBags(parsedAdditionalCheckedBags);
+            if (!isNaN(parsedAdditionalCheckedBagsReturn)) setAdditionalCheckedBagsReturn(parsedAdditionalCheckedBagsReturn);
 
             if (!parsedTripData || alreadyConfirmed) return;
 
@@ -58,7 +70,9 @@ export default function ConfirmBookingPage() {
                         travellerCount: parsedTripData.travellerCount,
                         bookedFlights,
                         additionalCheckedBags: parsedAdditionalCheckedBags,
-                        travellers: parsedTravellers
+                        additionalCheckedBagsReturn: parsedAdditionalCheckedBagsReturn,
+                        travellers: parsedTravellers,
+                        pointsRedeemed: savedBookingSummary.pointsRedeemed
                     })
                 });
                 const data = await res.json();
@@ -131,6 +145,19 @@ export default function ConfirmBookingPage() {
                             <div className="object-panel">
                                 {tripData && renderFlightInfo(tripData?.flights[0] , 0)}
                             </div>
+                        </div>
+                    )}
+
+                    <br></br>
+
+                    {bookingSummary && (
+                        <div className="trip-price">
+                            <h4>Total Paid: ${Number(bookingSummary.finalPrice).toFixed(2)}</h4>
+                            {bookingSummary.pointsRedeemed > 0 && (
+                                <p>You redeemed {bookingSummary.pointsRedeemed.toLocaleString()} points for a ${Number(bookingSummary.discount).toFixed(2)} discount.</p>
+                            )}
+                            <p>You earned {bookingSummary.pointsEarned.toLocaleString()} loyalty points on this booking.</p>
+                            <p>Your new points balance is {bookingSummary.pointsBalance.toLocaleString()}.</p>
                         </div>
                     )}
 

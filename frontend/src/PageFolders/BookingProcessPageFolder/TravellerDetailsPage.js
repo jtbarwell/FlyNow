@@ -105,7 +105,7 @@ export default function TravellerDetailsPage() {
                             <button>Continue</button>
                         </div>
                     </div>
-                };
+                }
             </div>
         </div>
     );

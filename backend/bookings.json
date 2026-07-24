@@ -15,6 +15,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -33,6 +38,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -58,6 +68,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -76,6 +91,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -94,6 +114,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -121,6 +146,11 @@
           "isCancelled": true
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -139,6 +169,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -157,6 +192,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -175,6 +215,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false,
       "travellers": []
     },
@@ -214,6 +259,11 @@
           "isCancelled": false
         }
       ],
+      "totalPrice": 0,
+      "pointsRedeemed": 0,
+      "discount": 0,
+      "finalPrice": 0,
+      "pointsEarned": 0,
       "isCancelled": false
     }
   ]

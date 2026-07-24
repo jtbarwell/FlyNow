@@ -24,9 +24,6 @@ export default function SeatingBaggagePage() {
             const savedTripData = localStorage.getItem('tripData');
             if (savedTripData) {setTripData(JSON.parse(savedTripData));}
 
-            const savedSelectedSeats = localStorage.getItem('selectedSeats');
-            if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
-
             const savedTravellers = localStorage.getItem('travellers');
             if (savedTravellers) {setTravellers(JSON.parse(savedTravellers));}
 
