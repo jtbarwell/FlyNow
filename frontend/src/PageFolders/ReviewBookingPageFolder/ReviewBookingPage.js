@@ -1,16 +1,29 @@
 import React, { useEffect, useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import CheckoutForm from './CheckoutForm';
+
+// Initializing Stripe outside of component render to avoid rebuilding the object
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY): null;
+
+const POINTS_REDEMPTION_INCREMENT = 1000;
+const POINTS_REDEMPTION_VALUE = 25;
 
 export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [userPoints, setUserPoints] = useState(0);
+    const [pointsToRedeem, setPointsToRedeem] = useState(0);
+    const [bookingPointsSummary, setBookingPointsSummary] = useState(null);
     const [baggageFee, setBaggageFee] = useState(50);
     const [additionalCheckedBagsReturn, setAdditionalCheckedBagsReturn] = useState(0);
     const [returnBaggageFee, setReturnBaggageFee] = useState(50);
 
+    const [clientSecret, setClientSecret] = useState('');
 
     useEffect(() => {
-        const loginCheck = async () => {
+        const loginCheck = async () => { // Checks if user is logged in, sends them to login screen if not
             const res = await fetch('http://localhost:3001/api/check-login', {
                 method: 'GET',
                 credentials: "include"
@@ -20,19 +33,86 @@ export default function ReviewBookingPage() {
                 window.location.href = "/login";
             }
         }
+        loginCheck();
+    }, []);
+
+    useEffect(() => {
         const fetchData = async () => {
+            // Actually doing what this function is called
             const savedTripData = localStorage.getItem('tripData');
-            if (savedTripData) {setTripData(JSON.parse(savedTripData));}
+            const parsedTripData = savedTripData ? JSON.parse(savedTripData) : null;
+            
             const savedSelectedSeats = localStorage.getItem('selectedSeats');
-            if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
+            const parsedSelectedSeats = savedSelectedSeats ? JSON.parse(savedSelectedSeats) : null;
+            
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
-            if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
+            const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
+
             const savedAdditionalCheckedBagsReturn = localStorage.getItem('additionalCheckedBagsReturn');
-            if (savedAdditionalCheckedBagsReturn) {setAdditionalCheckedBagsReturn(parseInt(savedAdditionalCheckedBagsReturn));}
+            const parsedAdditionalCheckedBagsReturn = savedAdditionalCheckedBagsReturn ? parseInt(savedAdditionalCheckedBagsReturn) : 0;
+
+            // Update state so UI stays in sync
+            if (parsedTripData) setTripData(parsedTripData);
+            if (parsedSelectedSeats) setSelectedSeats(parsedSelectedSeats);
+            if (!isNaN(parsedAdditionalCheckedBags)) setAdditionalCheckedBags(parsedAdditionalCheckedBags);
+            if (!isNaN(parsedAdditionalCheckedBagsReturn)) setAdditionalCheckedBagsReturn(parsedAdditionalCheckedBagsReturn);
+
+            // Format booked flights to send for payment calculation
+            const bookedFlights = [];
+            for (let i = 0; i < parsedTripData.flights.length; i++) {
+                bookedFlights.push({
+                        flightID: parsedTripData.flights[i].flightID,
+                        seats: parsedSelectedSeats[i] || []
+                    });
+            };
+
+            // Create Payment Intent (payment processing stuff)
+            fetch('http://localhost:3001/api/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    bookedFlights, 
+                    additionalCheckedBags: parsedAdditionalCheckedBags,
+                    additionalCheckedBagsReturn: parsedAdditionalCheckedBagsReturn,
+                    pointsRedeemed: pointsToRedeem
+                }),
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    setClientSecret(data.clientSecret);
+                    localStorage.setItem('activeBookingPointsSummary', JSON.stringify({
+                        totalPrice: data.bookingPointsSummary.totalPrice,
+                        discount: data.bookingPointsSummary.discount,
+                        finalPrice: data.bookingPointsSummary.finalPrice,
+                        pointsRedeemed: pointsToRedeem,
+                        pointsEarned: data.bookingPointsSummary.pointsEarned,
+                        pointsBalance: data.bookingPointsSummary.pointsBalance
+                    }))
+                })
+        };
+        
+        fetchData();
+    }, [pointsToRedeem]);
+
+    useEffect(() => {
+
+        const fetchPoints = async () => {
+            try {
+                const res = await fetch('http://localhost:3001/api/user/points', {
+                    method: 'GET',
+                    credentials: "include"
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setUserPoints(data.points || 0);
+                }
+            } catch (error) {
+                console.error('Error fetching points balance:', error);
+            }
         };
 
-        loginCheck();
-        fetchData();
+        fetchPoints();
     }, []);
 
     async function getBaggageFee(airline) { // fetch baggage fee from backend
@@ -95,7 +175,7 @@ export default function ReviewBookingPage() {
         loadFee();
     }, [tripData]);
 
-
+    // Create HTML box with information about the flight and return it to be shown
     function renderFlightInfo(flight, flightIndex) {
         const dep_time = new Date(flight.departureTime);
         const arr_time = new Date(flight.arrivalTime);
@@ -164,6 +244,38 @@ export default function ReviewBookingPage() {
         return totalPrice + (additionalCheckedBags * baggageFee) + (additionalCheckedBagsReturn * returnBaggageFee);
     }
 
+    useEffect(() => {
+        if (!tripData) return;
+        const totalPrice = calculateTotalPrice(tripData.flights);
+        const maxRedeemable = getMaxRedeemablePoints(totalPrice);
+        if (pointsToRedeem > maxRedeemable) {
+            setPointsToRedeem(maxRedeemable);
+        }
+    }, [tripData, additionalCheckedBags, userPoints]);
+
+    function getMaxRedeemablePoints(totalPrice) {
+    // Only whole 1000-point increments, capped by what the user owns and by the order total
+    const maxByBalance = Math.floor(userPoints / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_INCREMENT;
+    const maxByPrice = Math.floor(totalPrice / POINTS_REDEMPTION_VALUE) * POINTS_REDEMPTION_INCREMENT;
+    return Math.max(0, Math.min(maxByBalance, maxByPrice));
+    }
+
+    function getDiscount() {
+        return (pointsToRedeem / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_VALUE;
+    }
+
+    function getFinalPrice(totalPrice) {
+        return Math.max(0, totalPrice - getDiscount());
+    }
+
+    function getPointsToBeEarned(finalPrice) {
+        return Math.floor(finalPrice);
+    }
+
+    function handlePointsRedeemChange(e) {
+        setPointsToRedeem(parseInt(e.target.value));
+    }
+
     function getTotalPriceOfLevel(flight, level, flightIndex) {
         // find total price of seats selected for this flight and level
         let totalPrice = 0;
@@ -209,45 +321,7 @@ export default function ReviewBookingPage() {
         );
     }
 
-    async function checkout() {
-        try {
-            // Send the booking data to the backend for processing
-            const bookedFlights = [];
-            for (let i = 0; i < tripData.flights.length; i++) {
-                bookedFlights.push(
-                    {
-                        flightID: tripData.flights[i].flightID,
-                        seats: selectedSeats[i]
-                    });
-            };
-            const payload = {
-              tripType: tripData.tripType,
-              travellerCount: tripData.travellerCount,
-              bookedFlights,
-              additionalCheckedBags
-            };
-            
-            const res = await fetch("http://localhost:3001/api/bookingConfirm", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            
-            if (!data) {
-                console.error('Booking failed:', data);
-                alert('Booking failed. Please try again.');
-                return;
-            }
-            // Debugging
-            console.log("Booking confirmed:", data);
-            // Redirect to confirmation page
-            window.location.href = "/confirm-booking";
-        } catch (error) {
-            console.error('Error during checkout:', error);
-        }
-    }
+    const options = { clientSecret };
 
     return (
         <div className="text-center">
@@ -259,7 +333,7 @@ export default function ReviewBookingPage() {
                     <h2>Review Your Booking Information</h2>
                     <hr></hr>
                     <h3>{tripData?.airlines.join(' + ')}</h3>
-                    <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
+                    <h4 className="to-uppercase">{tripData?.origin} &rarr; {tripData?.destination}</h4>
                     <h5>{tripData?.tripType === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                     
                     {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (
@@ -290,20 +364,53 @@ export default function ReviewBookingPage() {
 
                     <hr></hr>
 
-                    <h5>Select payment method</h5>
-                    <div className="payment-method-input">
-                        <select>
-                            <option>Credit Card</option>
-                            <option>Debit Card</option>
-                            <option>PayPal</option>
-                        </select>
-                    </div>
+                    <h5>Redeem Loyalty Points</h5>
+                    <p>You have {userPoints.toLocaleString()} points. Redeem {POINTS_REDEMPTION_INCREMENT.toLocaleString()} points for a ${POINTS_REDEMPTION_VALUE} discount.</p>
+                    {tripData && (() => {
+                        const totalPrice = calculateTotalPrice(tripData.flights);
+                        const maxRedeemable = getMaxRedeemablePoints(totalPrice);
+                        const options = [];
+                        for (let p = 0; p <= maxRedeemable; p += POINTS_REDEMPTION_INCREMENT) {
+                            options.push(p);
+                        }
+                        return (
+                            <div className="payment-method-input">
+                                <select value={pointsToRedeem} onChange={handlePointsRedeemChange} disabled={maxRedeemable === 0}>
+                                    {options.map(p => (
+                                        <option key={p} value={p}>
+                                            {p === 0 ? 'Do not redeem points' : `${p.toLocaleString()} points (-$${((p / POINTS_REDEMPTION_INCREMENT) * POINTS_REDEMPTION_VALUE).toFixed(2)})`}
+                                        </option>
+                                    ))}
+                                </select>
+                                {maxRedeemable === 0 && <p>You don't have enough points to redeem yet.</p>}
+                            </div>
+                        );
+                    })()}
 
                     <br></br>
 
-                    <div className="checkout-button" onClick={checkout}>
-                        <button>Checkout</button>
-                    </div>
+                    {tripData && (() => {
+                        const totalPrice = calculateTotalPrice(tripData.flights);
+                        const discount = getDiscount();
+                        const finalPrice = getFinalPrice(totalPrice);
+                        const pointsEarned = getPointsToBeEarned(finalPrice);
+                        return (
+                            <div className="trip-price">
+                                {discount > 0 && <h5>Points Discount: -${discount.toFixed(2)}</h5>}
+                                <h5>Added Tax: ${finalPrice.toFixed(2)*0.13}</h5>
+                                <h4>Total Price: ${finalPrice.toFixed(2)*1.13}</h4>
+                                <p>You will earn {pointsEarned.toLocaleString()} loyalty points from this booking.</p>
+                            </div>
+                        );
+                    })()}
+
+                    <hr></hr>
+
+                    {clientSecret && (
+                        <Elements options={options} stripe={stripePromise}>
+                            <CheckoutForm />
+                        </Elements>
+                     )}
 
                 </div>
             </div>

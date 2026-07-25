@@ -164,6 +164,9 @@
 .action-button {
     flex: 1;
 }
+.to-uppercase {
+    text-transform: uppercase;
+}
 
 .action-button button {
     background-color: #e6dfef;
@@ -257,4 +260,116 @@
 
 .trip-toggle input[type="radio"]:checked + label .fa-check {
     display: inline-block;
+}
+
+
+.seat-options {
+	display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+	justify-content: center;
+}
+
+.seat-button {
+    min-width: 70px;
+	font-weight: 600;
+    padding: 10px;
+    border: 1px solid #e3ddef;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.seat-button span {
+    display: block;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.seat-button:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.seat-button.selected {
+    background: #e6def9;
+    border-color: #0d47a1;
+    color: #4b2ea0;
+}
+
+.seat-button.selected span {
+    color: #4b2ea0;
+}
+
+.trip-toggle button {
+    flex: 1;
+    text-align: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--inactive-text);
+	background-color: rgb(255,255,255);
+	border-width: 0;
+    cursor: pointer;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+}
+
+.trip-toggle button:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.trip-toggle button.selected {
+    background: var(--active-bg);
+    color: var(--active-text);
+}
+
+.seat-card {
+    position: relative;
+}
+
+.seat-dropdown-overlay {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    min-width: 220px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+}
+
+.seat-dropdown-overlay select {
+    width: 100%;
+}
+
+/* Container styling */
+.custom-file-input {
+  color: #333;
+  font-family: sans-serif;
+}
+
+/* Button specific styling */
+.custom-file-input::file-selector-button {
+  background-color: #dbccff;
+  color: #576379;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 12px;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover state for the button */
+.custom-file-input::file-selector-button:hover {
+  background-color: #4b2ea0;
+  color: white;
 }

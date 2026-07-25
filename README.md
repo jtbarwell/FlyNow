@@ -123,16 +123,20 @@ The backend sends emails (e.g. via `/api/send-email`) using a Gmail account thro
  
 3. Restart the backend. If it's working, you won't see any `Missing credentials` or `EAUTH` errors on startup or when hitting `/api/send-email`.
 
-## Setting up the email notification system
+## Setting up and using the payment processing system
 
-The program requires public and secret keys to properly process payment in a test environment. Create a free account at dashboard.stripe.com, select sandbox mode and find your public and secret API keys. **Do not share your API keys with anyone.***
+The program requires public and secret keys to properly process payment in a test environment. Follow the steps below to find your test keys and add them to your test build. This section also includes instructions on how to test the payment system.
 
-1. In the `frontend/` folder, copy the template:
+### First-time setup (do this once per machine)
+
+1. Create a free account at <a href="https://dashboard.stripe.com">Stripe</a>. Then select sandbox mode and find your public and secret API keys. **Do not share your API keys with anyone.**
+
+2. In the `frontend/` folder, copy the template:
 ```bash
    copy .env.example .env
 ```
 
-2. Now fill in the real values:
+3. Now fill in the real values:
 Enter your secret key in `backend/.env`:
 ```
    STRIPE_SECRET_KEY="sk_test_your_secret_key_here"
@@ -142,7 +146,13 @@ Then do the same thing in `frontend/.env` with your publishable key.
    REACT_APP_STRIPE_PUBLISHABLE_KEY="pk_test_your_publishable_key_here"
 ```
 
-3. Restart the backend. If it's working, you won't see any errors on startup.
+4. Restart the backend. If it's working, you won't see any errors on startup.
+
+### Payment testing instructions
+
+When checking out in your test build, **do not use your personal financial information**. 
+Instead, enter a testing credit card number like 5555 5555 5555 4444, any future date for the expiration date, and any 3 numbers for the security code.
+Then press "Pay now" and your transaction will go through with no issues.
 
 ## Available Scripts
 
