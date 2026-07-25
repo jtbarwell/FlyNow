@@ -112,7 +112,7 @@
         {
           "name": "D6",
           "class": "economy",
-          "booked": false
+          "booked": true
         },
         {
           "name": "A7",

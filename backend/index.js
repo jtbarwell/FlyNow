@@ -83,9 +83,10 @@ app.get('/api/check-login', (req, res) => {
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
-  req.session.destroy((err) => {
-    return res.json({ valid: !err });
-  });
+    req.session.user = null;
+    req.session.destroy((err) => {
+        return res.json({ valid: !err });
+    });
 });
 
 // SIGN UP
