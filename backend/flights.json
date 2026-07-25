@@ -30550,7 +30550,8 @@
           "class": "economy",
           "booked": true
         }
-      ]
+      ],
+      "isCancelled": false
     }
   ]
 }

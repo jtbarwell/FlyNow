@@ -310,7 +310,7 @@ function requireAdmin(req, res, next) {
 
 app.get('/api/admin/flights', requireAdmin, async (req, res) => {
   await fdb.read();
-  return res.json({ valid: true, flights: fdb.data.flights });
+  return res.json({ valid: true, flights: fdb.data.flights.filter(f => f.isCancelled === null || !f.isCancelled) });
 });
 
 app.post('/api/admin/flights', requireAdmin, async (req, res) => {
@@ -390,6 +390,24 @@ app.post('/api/admin/flights/upload', requireAdmin, async (req, res) => {
   
   await fdb.write();
   return res.json({ valid: true, message: 'Flights created successfully', flights });
+});
+
+app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
+  await fdb.read();
+  const flightID = Number(req.params.flightID);
+  
+  const index = fdb.data.flights.findIndex(f => f.flightID === flightID);
+  if (index === -1) {
+    return res.status(404).json({ valid: false, message: 'Flight not found' });
+  }
+
+  fdb.data.flights[index] = {
+    ...fdb.data.flights[index],
+    isCancelled: true
+  };
+
+  await fdb.write();
+  return res.json({ valid: true, message: 'Flight cancelled successfully' });
 });
 
 app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res) => {

@@ -118,13 +118,13 @@ export default function AdminDashboardPage() {
     loadFlights();
   };
 
-  const handleDelete = async () => {
+  const handleCancel = async () => {
     const response = await fetch(`http://localhost:3001/api/admin/flights/${selectedFlightId}`, {
       method: 'DELETE',
       credentials: 'include'
     });
     const data = await response.json();
-    setMessage(data.message || 'Flight removed');
+    setMessage(data.message || 'Flight cancelled successfully');
     loadFlights();
   };
 
@@ -222,7 +222,7 @@ export default function AdminDashboardPage() {
             <div style={{ display: 'flex', gap: '0.7rem', marginTop: '1rem' }}>
               <button type="submit" style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Save Changes</button>
               <button type="button" onClick={handleCreate} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Create New</button>
-              <button type="button" onClick={handleDelete} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Delete</button>
+              <button type="button" onClick={handleCancel} style={{ flex: 1, padding: '0.8rem', border: 'none', borderRadius: 8, background: '#e6dfef', color: '#333', cursor: 'pointer' }}>Cancel Flight</button>
             </div>
             <hr></hr>
             <div style={{ marginTop: '1rem' }}>
