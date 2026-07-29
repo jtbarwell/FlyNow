@@ -83,6 +83,12 @@ export default function UserTripsPage() {
                         }
                         <p>{formatDate(firstFlight.departureTime)}{trip.flights.length > 1 ? ` – ${formatDate(lastFlight.arrivalTime)}` : ''}</p>
                         <p style={{ marginTop: '8px', fontWeight: 'bold' }}>Status: {getTripStatus(trip)}</p>
+                        {trip.finalPrice !== undefined && (
+                            <p>
+                                Total Paid: ${trip.finalPrice.toFixed(2)}
+                                {trip.pointsEarned > 0 ? ` • Earned ${trip.pointsEarned.toLocaleString()} pts` : ''}
+                            </p>
+                        )}
                         <button className="btn btn-outline-secondary" onClick={() => viewDetails(trip)} style={{ marginTop: '12px' }}>
                             View Details
                         </button>

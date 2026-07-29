@@ -80,6 +80,23 @@ app.get('/api/check-login', (req, res) => {
   return res.json({ loggedIn: false });
 });
 
+// LOYALTY POINTS
+
+app.get('/api/user/points', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not logged in' });
+  await udb.read();
+
+  const user = udb.data.users.find(u => u.userID === req.session.user.userID);
+
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  return res.json({
+
+    points: user.points || 0,
+    redemptionIncrement: POINTS_REDEMPTION_INCREMENT,
+    redemptionValue: POINTS_REDEMPTION_VALUE
+  });
+});
+
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
@@ -103,6 +120,7 @@ async function signup(email, password, firstName, lastName) {
     password: passwordHash,
     firstName,
     lastName,
+    points: 0,
     bookings: []
   });
   await udb.write();
@@ -624,7 +642,6 @@ async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, a
   }));
   await bdb.write();
 
-
   const user = udb.data.users[userID];
   user.bookings.push(booking.bookingID);
   user.points = (user.points || 0) - pointsRedeemed + pointsEarned;
@@ -816,6 +833,12 @@ app.post('/api/cancel-booking', async (req, res) => {
       }
     }
   }
+
+  const user = udb.data.users.find(u => u.userID === userID);
+  if (user) {
+    const pointsEarned = booking.pointsEarned || 0;
+    const pointsRedeemed = booking.pointsRedeemed || 0;
+    user.points = Math.max(0, (user.points || 0) - pointsEarned + pointsRedeemed);
   booking.isCancelled = booking.flights.every(f => f.isCancelled);
 
   let refund = 0;
@@ -840,7 +863,8 @@ app.post('/api/cancel-booking', async (req, res) => {
     cancelledBookingID: [booking.bookingID],
     cancelledFlightIDs: legsCancelled.map(f => f.flightID),
     bookingFullyCancelled: booking.isCancelled,
-    refund: refund
+    refund: refund,
+    pointsBalance: user ? user.points : undefined
   });
 });
 
@@ -866,6 +890,11 @@ app.get('/api/my-trips', async (req, res) => {
         tripType: booking.tripType ?? 'one-way',
         additionalCheckedBags: booking.additionalCheckedBags ?? 0,
         travellerCount: booking.travellerCount ?? 1,
+        totalPrice: booking.totalPrice,
+        discount: booking.discount ?? 0,
+        pointsRedeemed: booking.pointsRedeemed ?? 0,
+        finalPrice: booking.finalPrice,
+        pointsEarned: booking.pointsEarned ?? 0,
         travellers: booking.travellers ?? [],
         flights: [],
         isCancelled: true,

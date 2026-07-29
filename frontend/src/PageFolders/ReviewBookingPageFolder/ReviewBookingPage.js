@@ -9,6 +9,9 @@ const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? loadStripe(
 const POINTS_REDEMPTION_INCREMENT = 1000;
 const POINTS_REDEMPTION_VALUE = 25;
 
+const POINTS_REDEMPTION_INCREMENT = 1000;
+const POINTS_REDEMPTION_VALUE = 25;
+
 export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
@@ -361,7 +364,7 @@ export default function ReviewBookingPage() {
                     <PriceBreakdown></PriceBreakdown>
 
                     <div className="trip-price">
-                        <h4>Gross Price: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
+                        <h4>Subtotal: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
                     </div>
 
                     <hr></hr>
