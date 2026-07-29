@@ -3,7 +3,11 @@ import React, { useEffect, useState } from 'react';
 export default function SeatingBaggagePage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
+    const [travellers, setTravellers] = useState([]);
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
+    const [additionalCheckedBagsReturn, setAdditionalCheckedBagsReturn] = useState(0);
+    const [baggageFee, setBaggageFee] = useState(50);
+    const [returnBaggageFee, setReturnBaggageFee] = useState(50);
 
     useEffect(() => {
         const loginCheck = async () => {
@@ -16,24 +20,32 @@ export default function SeatingBaggagePage() {
                 window.location.href = "/login";
             }
         }
-        const fetchTripData = async () => {
+        const fetchTripData = async () => { // save trip data to local storage
             const savedTripData = localStorage.getItem('tripData');
-            if (savedTripData) {
-                setTripData(JSON.parse(savedTripData));
-            }
+            if (savedTripData) {setTripData(JSON.parse(savedTripData));}
 
+            const savedTravellers = localStorage.getItem('travellers');
+            if (savedTravellers) {setTravellers(JSON.parse(savedTravellers));}
+
+            const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
+            if (savedAdditionalCheckedBags !== null) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags, 10) || 0);}
+
+            const savedAdditionalCheckedBagsReturn = localStorage.getItem('additionalCheckedBagsReturn');
+            if (savedAdditionalCheckedBagsReturn !== null) {setAdditionalCheckedBagsReturn(parseInt(savedAdditionalCheckedBagsReturn, 10) || 0);}
         };
 
         loginCheck();
         fetchTripData();
     }, []);
 
-    const handleSeatSelection = (flightIndex, seats) => {
+    const handleSeatSelection = (flightIndex, travellerIndex, seatName) => { 
         // Update the selected seats for the specific flight
         // [[A3, B2], [C1, D4]]
-        setSelectedSeats(() => {
-            const updatedSeats = [...selectedSeats];
-            updatedSeats[flightIndex] = seats;
+        setSelectedSeats((prevSelectedSeats) => {
+            const updatedSeats = [...(prevSelectedSeats || [])];
+            const forFlight = [...(updatedSeats[flightIndex] || [])];
+            forFlight[travellerIndex] = seatName;
+            updatedSeats[flightIndex] = forFlight;
             return updatedSeats;
         });
     };
@@ -64,55 +76,245 @@ export default function SeatingBaggagePage() {
     function validSeatSelection() {
         for (let i = 0; i < tripData.flights.length; i++) {
             const selectedForFlight = selectedSeats[i] || [];
-            if (selectedForFlight.length < tripData.travellerCount) {
-                alert(`Please select ${tripData.travellerCount} seat(s) for flight ${i + 1}.`);
-                return false;
+            for (let t = 0; t < tripData.travellerCount; t++) {
+                if (!selectedForFlight[t]) {
+                    alert(`Please select a seat for every traveller on flight ${i + 1}.`);
+                    return false;
+                }
             }
         }
         return true;
     }
 
+    // Save chosen seats and bags then navigate to review booking
     function navToReviewBooking() {
         if (!validSeatSelection()) {return;}
         localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
         localStorage.setItem('additionalCheckedBags', additionalCheckedBags);
+        localStorage.setItem('additionalCheckedBagsReturn', additionalCheckedBagsReturn);
         window.location.href = "/review-booking";
     }
 
     function SeatSelectionMenu({ flight }) {
+        const [seatClass, setSeatClass] = useState('economy');
+        const [activeSeatForAssignment, setActiveSeatForAssignment] = useState(null);
+
         if (!flight || !flight.seats) {
             return null;
         }
+
         const flightIndex = tripData.flights.indexOf(flight);
         const availableSeats = getAvailableSeats(flight.seats);
         const selectedForFlight = selectedSeats[flightIndex] || [];
 
+        const filteredAvailableSeats = availableSeats.filter(seats => seats.class === seatClass);
+
+        const getTravellerName = (travellerIndex) => {
+            const traveller = travellers[travellerIndex];
+            return traveller ? `${traveller.firstName} ${traveller.lastName}` : 'Unknown';
+        };
+
+        const getAssignedTravellerIndex = (seatName) => {
+            return selectedForFlight.findIndex((name) => name === seatName);
+        };
+
+        const getTravellerOptionsForSeat = (seatName) => {
+            return travellers
+                .map((traveller, index) => ({
+                    traveller,
+                    index,
+                    assignedSeat: selectedForFlight[index]
+                }))
+                .filter(({ assignedSeat }) => assignedSeat === seatName || !assignedSeat);
+        };
+
+        const assignSeatToTraveller = (seatName, travellerIndex) => {
+            setSelectedSeats((prevSelectedSeats) => {
+                const updatedSeats = [...(prevSelectedSeats || [])];
+                const flightSeats = [...(updatedSeats[flightIndex] || Array(tripData.travellerCount).fill(''))];
+
+                // Clear this seat if already assigned to someone else
+                const existingTraveller = flightSeats.findIndex((name) => name === seatName);
+                if (existingTraveller >= 0) {
+                    flightSeats[existingTraveller] = '';
+                }
+
+                flightSeats[travellerIndex] = seatName;
+                updatedSeats[flightIndex] = flightSeats;
+                return updatedSeats;
+            });
+            setActiveSeatForAssignment(null);
+        };
+
+        const unassignSeat = (seatName) => {
+            setSelectedSeats((prevSelectedSeats) => {
+                const updatedSeats = [...(prevSelectedSeats || [])];
+                const flightSeats = [...(updatedSeats[flightIndex] || Array(tripData.travellerCount).fill(''))];
+                const travellerIndex = flightSeats.findIndex((name) => name === seatName);
+                if (travellerIndex >= 0) {
+                    flightSeats[travellerIndex] = '';
+                }
+                updatedSeats[flightIndex] = flightSeats;
+                return updatedSeats;
+            });
+            setActiveSeatForAssignment(null);
+        };
+
         return (
             <div className="seat-selection-menu">
+                
                 <h5>Available Seats</h5>
-                <div className="seat-options">
-                    <select 
-                        multiple
-                        value={selectedForFlight} 
-                        onChange={(e) => {
-                        const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
-                        if (selectedOptions.length > tripData.travellerCount) {
-                            alert(`You can only select up to ${tripData.travellerCount} seat(s).`);
-                            return;
-                        }
-                        handleSeatSelection(flightIndex, selectedOptions);
-                    }}>
-                        {availableSeats.map((seat) => (
-                            <option key={seat.name} value={seat.name}>
-                                {seat.name} - ${flight.price[seat.class]?.toFixed(2) || 'N/A'}
-                            </option>
-                        ))}
-                    </select>
-                    <p>Selected Seats: {selectedForFlight.join(', ') || 'None'}</p>
+
+                <div className="trip-toggle" role="buttongroup">
+                    <button
+                        type="button"
+                        className={`seat-class-button ${seatClass === "economy" ? 'selected' : ''}`}
+                        aria-pressed={seatClass === "economy"}
+                        onClick={() => setSeatClass("economy")}
+                    >
+                        <span>Economy</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`seat-class-button ${seatClass === "business" ? 'selected' : ''}`}
+                        aria-pressed={seatClass === "business"}
+                        onClick={() => setSeatClass("business")}
+                    >
+                        <span>Business</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`seat-class-button ${seatClass === "firstClass" ? 'selected' : ''}`}
+                        aria-pressed={seatClass === "firstClass"}
+                        onClick={() => setSeatClass("firstClass")}
+                    >
+                        <span>First Class</span>
+                    </button>
                 </div>
+
+                <hr></hr>
+
+                <div className="seat-options" role="group" aria-label="Available seats">
+                    {filteredAvailableSeats.map((seat) => {
+                        const assignedTravellerIndex = getAssignedTravellerIndex(seat.name);
+                        const assignedLabel = assignedTravellerIndex >= 0
+                            ? getTravellerName(assignedTravellerIndex)
+                            : null;
+
+                        return (
+                            <div className="seat-card" key={seat.name} style={{ position: 'relative' }}>
+                                <button
+                                    type="button"
+                                    className={`seat-button ${assignedTravellerIndex >= 0 ? 'selected' : ''}`}
+                                    aria-pressed={assignedTravellerIndex >= 0}
+                                    onClick={() => setActiveSeatForAssignment(seat.name)}
+                                >
+                                    {seat.name}
+                                    
+                                    <span>{assignedLabel ? assignedLabel : `$${flight.price[seat.class]?.toFixed(2)}` || 'N/A'}</span>
+                                </button>
+
+                                {activeSeatForAssignment === seat.name && (
+                                    <div className="seat-dropdown-overlay">
+                                        <select
+                                            value={assignedTravellerIndex >= 0 ? assignedTravellerIndex : ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '') {
+                                                    unassignSeat(seat.name);
+                                                } else {
+                                                    assignSeatToTraveller(seat.name, parseInt(value, 10));
+                                                }
+                                            }}
+                                        >
+                                            <option value="">Assign traveller / unassign</option>
+                                            {getTravellerOptionsForSeat(seat.name).map(({ traveller, index }) => (
+                                                <option key={index} value={index}>
+                                                    {traveller.firstName} {traveller.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                    
+                </div>
+                <hr></hr>
+                <h5>Selected Seats: {selectedForFlight.join(', ') || 'None'}</h5>
             </div>
         );
     }
+
+    // pricing for checked bags
+    async function getBaggageFee(airline) { 
+        const response = await fetch(`/api/baggage-cost?airline=${encodeURIComponent(airline)}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const data = await response.json();
+        return data.valid ? data.fee : null;
+    }
+
+    useEffect(() => { // fetch baggage fee for departure
+        const airline = tripData?.flights?.[0]?.airline;
+        if (!airline) {
+            setBaggageFee(50);
+            return;
+        }
+        const loadBaggageFee = async () => {
+            try {
+                console.log('Fetching baggage fee for airline:', airline);
+                const fee = await getBaggageFee(airline);
+                console.log('Baggage fee response:', fee);
+                setBaggageFee(fee ?? 50);
+            } catch (error) {
+                console.error('Error fetching baggage fee:', error);
+                setBaggageFee(50);
+            }
+        };
+        loadBaggageFee();
+    }, [tripData]);
+
+    useEffect(() => { // fetch baggage fee for return
+        const airline = tripData?.flights?.[1]?.airline;
+        if (!airline) {
+            setReturnBaggageFee(50);
+            return;
+        }
+        const loadReturnBaggageFee = async () => {
+            try {
+                console.log('Fetching baggage fee for airline:', airline);
+                const fee = await getBaggageFee(airline);
+                console.log('Baggage fee response:', fee);
+                setReturnBaggageFee(fee ?? 50);
+            } catch (error) {
+                console.error('Error fetching baggage fee:', error);
+                setReturnBaggageFee(50);
+            }
+        };
+        loadReturnBaggageFee();
+    }, [tripData]);
+
+    // function variableBaggageCost() {
+    //     let fee = 50;
+    //     // based on selected flight airline, change the cost per additional checked bag
+    //     switch (tripData.flights[0].airline) {
+    //         case "Air Canada":
+    //             fee = 60;
+    //             break;
+    //         case "WestJet":
+    //             fee = 85;
+    //             break;
+    //         case "Delta Airlines":
+    //             fee = 55;
+    //             break;
+    //         default:
+    //             fee = 50;
+    //     }
+    //     return fee;
+    // }
 
     function calculateTotalPrice(flights) {
         let totalPrice = 0;
@@ -125,15 +327,37 @@ export default function SeatingBaggagePage() {
                 }
             }
         }
-        return totalPrice + (additionalCheckedBags * 50); // Assuming $50 per additional checked bag
+        return totalPrice + (additionalCheckedBags * baggageFee)+ (additionalCheckedBagsReturn * returnBaggageFee); 
+    }
+
+    // helper function for getCheckedBaggageCount
+    function getSeatClass(seatName, flight) { 
+        const seatInfo = flight.seats.find(s => s.name === seatName);
+        return seatInfo ? seatInfo.class : null;
+    }
+
+    // 2 for firstClass, 1 for business, 0 for economy
+
+    function getCheckedBaggageCount(flightIndex = 0) {
+        const flight = tripData?.flights?.[flightIndex];
+        const seats = selectedSeats[flightIndex] || [];
+
+        if (!flight || seats.length === 0) return 0;
+
+        const seatClasses = seats.map(seat => getSeatClass(seat, flight));
+
+        if (seatClasses.includes('firstClass')) return 2;
+        if (seatClasses.includes('business')) return 1;
+        return 0;
     }
 
     function SeatingAndBaggageMenu() {
         if (!tripData) {
             return <p>Loading trip data...</p>;
         }
-        const includedCheckedBaggage = 1; // Example included checked baggage count
-        const checkedBaggageCost = 50; // Example cost for checked baggage
+
+        const checkedBaggageCost = baggageFee;
+        const returnCheckedBaggageCost = returnBaggageFee;
         return (
             <div className="booking-menu">
                 <h2>Step 1: Choose Your Seat{tripData?.travellerCount !== 1 ? 's' : ''}</h2>
@@ -165,23 +389,44 @@ export default function SeatingBaggagePage() {
 
                 <br></br>
 
-                <h2>Step 2: Select Baggage Options</h2>
+                <hr></hr>
+                <h2>Step 2: Baggage Options</h2>
+                <hr></hr>
 
+                <u><h4>{tripData.flights[0].name} Included Items:</h4></u>
                 <h5>Personal item: ✓</h5>
                 <h5>Carry-on bag: ✓</h5>
-                {includedCheckedBaggage ? <h5>{includedCheckedBaggage} checked baggage included per traveller</h5> : ""}
-                <label htmlFor="additional-checked-bags">Additional Checked Bags:</label>
+                <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(0)}</h5> 
+                <br></br>
+                <h4>Additional Baggage:</h4> 
+                <label htmlFor="additional-checked-bags">${(checkedBaggageCost)} each</label>
                 <input className="input-number" type="number" id="additional-checked-bags" min="0" placeholder="Enter number of additional checked bags" value={additionalCheckedBags} onChange={(e) => setAdditionalCheckedBags(parseInt(e.target.value) || 0)}></input>
-
                 <p>+${ (additionalCheckedBags * checkedBaggageCost).toFixed(2) }</p>
+                {tripData?.tripType === 'round-trip' && (
+                    <div>
+                        <hr></hr>
+                        <u><h4>{tripData.flights[1].name} Included Items:</h4></u>
+                        <h5>Personal item: ✓</h5>
+                        <h5>Carry-on bag: ✓</h5>
+                        <h5>Checked Bags Per Traveller: {getCheckedBaggageCount(1)}</h5> 
+                        <br></br>
+                        <h4>Return Trip Additional Baggage:</h4> 
+                        <label htmlFor="additional-checked-bags-return">${(returnCheckedBaggageCost)} each</label>
+                        <input className="input-number" type="number" id="additional-checked-bags-return" min="0" placeholder="Enter number of additional checked bags for return flight" value={additionalCheckedBagsReturn} onChange={(e) => setAdditionalCheckedBagsReturn(parseInt(e.target.value) || 0)}></input>
+                        <p>+${ (additionalCheckedBagsReturn * returnBaggageFee).toFixed(2) }</p>
+                    </div>
+                )}
+                
 
                 <div className="trip-price">
+                    <hr></hr>
                     <h4>${calculateTotalPrice(tripData?.flights).toFixed(2)}</h4>
+                    <hr></hr>
                 </div>
                 
                 <br></br>
 
-                <div className="continue-booking-button" onClick={navToReviewBooking}>
+                <div className="action-button" onClick={navToReviewBooking}>
                     <button>Continue</button>
                 </div>
 

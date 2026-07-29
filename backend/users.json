@@ -47,12 +47,13 @@
     {
       "userID": 4,
       "email": "jtbarwell@gmail.com",
-      "password": "$2b$10$bJ8LiLtT8ujGD9BKwzfXNOfpwqGkxIF3G36e8Yu356roh/cMXCcpq",
+      "password": "$2b$10$tBDeuWdg30i8fW4hM.kIHu6olr4i5H2YzcLkDIjJHmwp/qd66Vwre",
       "firstName": "Josh",
       "lastName": "Barwell",
       "points": 0,
       "bookings": [
-        8
+        8,
+        9
       ]
     },
     {
@@ -61,11 +62,23 @@
       "password": "$2b$10$QxGwXvCRsiCi5Kj7k.1JBOsuusKfnH7yBGtLPqQXuLCRTfUtKWlv.",
       "firstName": "Dylan",
       "lastName": "Baker",
-      "points": 0,
+      "points": 3015,
       "bookings": [
         5,
         6,
-        7
+        7,
+        9
+      ]
+    },
+    {
+      "userID": 6,
+      "email": "kuzm6431@mylaurier.ca",
+      "password": "$2b$10$cguZEYKaGscwuX7hraOpjuWaxHmFXoWNfQtF1Pcv3T7Y34gcm0vYa",
+      "firstName": "brady",
+      "lastName": "kuzma",
+      "points": 0,
+      "bookings": [
+        8
       ]
     }
   ]

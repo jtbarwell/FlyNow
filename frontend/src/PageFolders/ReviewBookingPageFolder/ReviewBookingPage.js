@@ -1,4 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import CheckoutForm from './CheckoutForm';
+
+// Initializing Stripe outside of component render to avoid rebuilding the object
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY): null;
+
+const POINTS_REDEMPTION_INCREMENT = 1000;
+const POINTS_REDEMPTION_VALUE = 25;
 
 const POINTS_REDEMPTION_INCREMENT = 1000;
 const POINTS_REDEMPTION_VALUE = 25;
@@ -9,9 +18,15 @@ export default function ReviewBookingPage() {
     const [additionalCheckedBags, setAdditionalCheckedBags] = useState(0);
     const [userPoints, setUserPoints] = useState(0);
     const [pointsToRedeem, setPointsToRedeem] = useState(0);
+    const [bookingPointsSummary, setBookingPointsSummary] = useState(null);
+    const [baggageFee, setBaggageFee] = useState(50);
+    const [additionalCheckedBagsReturn, setAdditionalCheckedBagsReturn] = useState(0);
+    const [returnBaggageFee, setReturnBaggageFee] = useState(50);
+
+    const [clientSecret, setClientSecret] = useState('');
 
     useEffect(() => {
-        const loginCheck = async () => {
+        const loginCheck = async () => { // Checks if user is logged in, sends them to login screen if not
             const res = await fetch('http://localhost:3001/api/check-login', {
                 method: 'GET',
                 credentials: "include"
@@ -21,14 +36,71 @@ export default function ReviewBookingPage() {
                 window.location.href = "/login";
             }
         }
+        loginCheck();
+    }, []);
+
+    useEffect(() => {
         const fetchData = async () => {
+            // Actually doing what this function is called
             const savedTripData = localStorage.getItem('tripData');
-            if (savedTripData) {setTripData(JSON.parse(savedTripData));}
+            const parsedTripData = savedTripData ? JSON.parse(savedTripData) : null;
+            
             const savedSelectedSeats = localStorage.getItem('selectedSeats');
-            if (savedSelectedSeats) {setSelectedSeats(JSON.parse(savedSelectedSeats));}
+            const parsedSelectedSeats = savedSelectedSeats ? JSON.parse(savedSelectedSeats) : null;
+            
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
-            if (savedAdditionalCheckedBags) {setAdditionalCheckedBags(parseInt(savedAdditionalCheckedBags));}
+            const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
+
+            
+            const savedAdditionalCheckedBagsReturn = localStorage.getItem('additionalCheckedBagsReturn');
+            const parsedAdditionalCheckedBagsReturn = savedAdditionalCheckedBagsReturn && parsedTripData.tripType === 'round-trip'? parseInt(savedAdditionalCheckedBagsReturn) : 0;
+  
+
+            // Update state so UI stays in sync
+            if (parsedTripData) setTripData(parsedTripData);
+            if (parsedSelectedSeats) setSelectedSeats(parsedSelectedSeats);
+            if (!isNaN(parsedAdditionalCheckedBags)) setAdditionalCheckedBags(parsedAdditionalCheckedBags);
+            if (!isNaN(parsedAdditionalCheckedBagsReturn)) setAdditionalCheckedBagsReturn(parsedAdditionalCheckedBagsReturn);
+
+            // Format booked flights to send for payment calculation
+            const bookedFlights = [];
+            for (let i = 0; i < parsedTripData.flights.length; i++) {
+                bookedFlights.push({
+                        flightID: parsedTripData.flights[i].flightID,
+                        seats: parsedSelectedSeats[i] || []
+                    });
+            };
+
+            // Create Payment Intent (payment processing stuff)
+            fetch('http://localhost:3001/api/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    bookedFlights, 
+                    additionalCheckedBags: parsedAdditionalCheckedBags,
+                    additionalCheckedBagsReturn: parsedAdditionalCheckedBagsReturn,
+                    pointsRedeemed: pointsToRedeem
+                }),
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    setClientSecret(data.clientSecret);
+                    localStorage.setItem('activeBookingPointsSummary', JSON.stringify({
+                        totalPrice: data.bookingPointsSummary.totalPrice,
+                        discount: data.bookingPointsSummary.discount,
+                        finalPrice: data.bookingPointsSummary.finalPrice,
+                        pointsRedeemed: pointsToRedeem,
+                        pointsEarned: data.bookingPointsSummary.pointsEarned,
+                        pointsBalance: data.bookingPointsSummary.pointsBalance
+                    }))
+                })
         };
+        
+        fetchData();
+    }, [pointsToRedeem]);
+
+    useEffect(() => {
 
         const fetchPoints = async () => {
             try {
@@ -45,11 +117,70 @@ export default function ReviewBookingPage() {
             }
         };
 
-        loginCheck();
-        fetchData();
         fetchPoints();
     }, []);
 
+    async function getBaggageFee(airline) { // fetch baggage fee from backend
+        const cleanedAirline = (airline || '').trim();
+        const response = await fetch(`http://localhost:3001/api/baggage-cost?airline=${encodeURIComponent(cleanedAirline)}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const data = await response.json();
+        return data.valid ? data.fee : null;
+    }
+
+    async function getReturnBaggageFee(airline) { // fetch baggage fee from backend
+        const cleanedAirline = (airline || '').trim();
+        const response = await fetch(`http://localhost:3001/api/baggage-cost?airline=${encodeURIComponent(cleanedAirline)}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        const data = await response.json();
+        return data.valid ? data.fee : null;
+    }
+
+    useEffect(() => { // fetch baggage fee error handlimg
+        const airline = tripData?.flights?.[0]?.airline?.trim();
+        if (!airline) {
+            setBaggageFee(50);
+            return;
+        }
+
+        const loadFee = async () => {
+            try {
+                const fee = await getBaggageFee(airline);
+                setBaggageFee(fee ?? 50);
+            } catch (error) {
+                console.error('Error fetching baggage fee:', error);
+                setBaggageFee(50);
+            }
+        };
+
+        loadFee();
+    }, [tripData]);
+
+    useEffect(() => { // fetch return-trip baggage fee error handling
+        const airline = tripData?.flights?.[1]?.airline?.trim();
+        if (!airline) {
+            setReturnBaggageFee(50);
+            return;
+        }
+
+        const loadFee = async () => {
+            try {
+                const fee = await getReturnBaggageFee(airline);
+                setReturnBaggageFee(fee ?? 50);
+            } catch (error) {
+                console.error('Error fetching return baggage fee:', error);
+                setReturnBaggageFee(50);
+            }
+        };
+
+        loadFee();
+    }, [tripData]);
+
+    // Create HTML box with information about the flight and return it to be shown
     function renderFlightInfo(flight, flightIndex) {
         const dep_time = new Date(flight.departureTime);
         const arr_time = new Date(flight.arrivalTime);
@@ -71,18 +202,51 @@ export default function ReviewBookingPage() {
         );
     }
 
-    function calculateTotalPrice(flights) {
+    // helper function for getCheckedBaggageCount
+    function getSeatClass(seatName, flight) { 
+        const seatInfo = flight.seats.find(s => s.name === seatName);
+        return seatInfo ? seatInfo.class : null;
+    }
+
+    // counting how many bags are included based on ticket type
+    function getCheckedBaggageCount(flightIndex) {
+        const flight = tripData?.flights?.[flightIndex];
+        const selectedForFlight = selectedSeats[flightIndex] || [];
+        if (!flight || selectedForFlight.length === 0) return 0;
+
+        const seatClasses = selectedForFlight.map(seat => getSeatClass(seat, flight));
+        return seatClasses.includes('firstClass') ? 2
+            : seatClasses.includes('business') ? 1
+            : 0;
+    }
+
+    function getFlightTotalPrice(flight, flightIndex) {
         let totalPrice = 0;
-        for (const flight of flights) {
-            for (const seat of selectedSeats[tripData.flights.indexOf(flight)] || []) {
-                const seatInfo = flight.seats.find(s => s.name === seat);
-                if (seatInfo) {
-                    const seatCost = flight.price[seatInfo.class] || 0;
-                    totalPrice += seatCost;
-                }
+        const selectedForFlight = selectedSeats[flightIndex] || [];
+
+        for (const seat of selectedForFlight) {
+            const seatInfo = flight.seats.find(s => s.name === seat);
+            if (seatInfo) {
+                totalPrice += flight.price[seatInfo.class] || 0;
             }
         }
-        return totalPrice + (additionalCheckedBags * 50); // Assuming $50 per additional checked bag
+        return totalPrice;
+    }
+
+    function getAdditionalBagsForFlight(index) { // helper for getting additional bag count
+        return index === 0 ? additionalCheckedBags : additionalCheckedBagsReturn;
+    }
+
+    function getBaggageFeeForFlight(index) { // helper for getting baggage fees
+        return index === 0 ? baggageFee : returnBaggageFee;
+    }
+
+    function calculateTotalPrice(flights) {
+        let totalPrice = 0;
+        for (let index = 0; index < flights.length; index++) {
+            totalPrice += getFlightTotalPrice(flights[index], index);
+        }
+        return totalPrice + (additionalCheckedBags * baggageFee) + (additionalCheckedBagsReturn * returnBaggageFee);
     }
 
     useEffect(() => {
@@ -117,11 +281,12 @@ export default function ReviewBookingPage() {
         setPointsToRedeem(parseInt(e.target.value));
     }
 
-    function getTotalPriceOfLevel(flight, level) {
+    function getTotalPriceOfLevel(flight, level, flightIndex) {
         // find total price of seats selected for this flight and level
         let totalPrice = 0;
         const levelSeats = flight.seats.filter(s => s.class === level);
-        for (const seat of selectedSeats[tripData.flights.indexOf(flight)] || []) {
+        const selectedForFlight = selectedSeats[flightIndex] || [];
+        for (const seat of selectedForFlight) {
             const seatInfo = levelSeats.find(s => s.name === seat);
             if (seatInfo) {
                 const seatCost = flight.price[seatInfo.class] || 0;
@@ -135,70 +300,33 @@ export default function ReviewBookingPage() {
         if (!tripData) return null;
         return (
             <div className="price-breakdown">
-                <h5>Flights</h5>
-                {tripData.flights.map((flight, index) => (
-                    <div key={index} className="flight-price-breakdown">
-                        <h5>Flight {index + 1}: {flight.name}</h5>
-                        <p>Economy (${flight.price.economy.toFixed(2)}): ${getTotalPriceOfLevel(flight, 'economy').toFixed(2)}</p>
-                        <p>Business (${flight.price.business.toFixed(2)}): ${getTotalPriceOfLevel(flight, 'business').toFixed(2)}</p>
-                        <p>First Class (${flight.price.firstClass.toFixed(2)}): ${getTotalPriceOfLevel(flight, 'firstClass').toFixed(2)}</p>
-                        <p>Additional Checked Bags: {additionalCheckedBags} x $50 = ${(additionalCheckedBags * 50).toFixed(2)}</p>
-                    </div>
-                ))}
-                
+                <h3>Flights</h3>
+                <hr></hr>
+                {tripData.flights.map((flight, index) => {
+                    const flightLabel = tripData.tripType === 'round-trip'
+                        ? (index === 0 ? 'Outbound' : 'Return')
+                        : `Flight ${index + 1}`;
+                    const selectedForFlight = selectedSeats[index] || [];
+                    const bagsForFlight = getAdditionalBagsForFlight(index);
+                    const feeForFlight = getBaggageFeeForFlight(index); 
+                    return (
+                        <div key={index} className="flight-price-breakdown">
+                            <h5>{flightLabel}: {flight.name}</h5>
+                            <p>Economy (${flight.price.economy.toFixed(2)}): ${getTotalPriceOfLevel(flight, 'economy', index).toFixed(2)}</p>
+                            <p>Business (${flight.price.business.toFixed(2)}): ${getTotalPriceOfLevel(flight, 'business', index).toFixed(2)}</p>
+                            <p>First Class (${flight.price.firstClass.toFixed(2)}): ${getTotalPriceOfLevel(flight, 'firstClass', index).toFixed(2)}</p>
+                            <p>Additional Checked Bags: {bagsForFlight} x ${feeForFlight.toFixed(2)} = ${(bagsForFlight * feeForFlight).toFixed(2)}</p>
+                            <p>Selected Seat(s): {selectedForFlight.join(', ') || 'None'}</p>
+                            <p>Included Checked Bags: {getCheckedBaggageCount(index)}</p>
+                            <hr></hr>
+                        </div>
+                    );
+                })}
             </div>
         );
     }
 
-    async function checkout() {
-        try {
-            // Send the booking data to the backend for processing
-            const bookedFlights = [];
-            for (let i = 0; i < tripData.flights.length; i++) {
-                bookedFlights.push(
-                    {
-                        flightID: tripData.flights[i].flightID,
-                        seats: selectedSeats[i]
-                    });
-            };
-            const payload = {
-              tripType: tripData.tripType,
-              travellerCount: tripData.travellerCount,
-              bookedFlights,
-              additionalCheckedBags,
-              pointsRedeemed: pointsToRedeem
-            };
-            
-            const res = await fetch("http://localhost:3001/api/bookingConfirm", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            
-            if (!res.ok || !data || data.error) {
-                console.error('Booking failed:', data);
-                alert(data?.error ||'Booking failed. Please try again.');
-                return;
-            }
-            // Debugging
-            console.log("Booking confirmed:", data);
-            // Save the loyalty points summary so the confirmation page can display it
-            localStorage.setItem('lastBookingSummary', JSON.stringify({
-                totalPrice: data.booking.totalPrice,
-                discount: data.booking.discount,
-                finalPrice: data.booking.finalPrice,
-                pointsRedeemed: data.booking.pointsRedeemed,
-                pointsEarned: data.booking.pointsEarned,
-                pointsBalance: data.pointsBalance
-            }));
-            // Redirect to confirmation page
-            window.location.href = "/confirm-booking";
-        } catch (error) {
-            console.error('Error during checkout:', error);
-        }
-    }
+    const options = { clientSecret };
 
     return (
         <div className="text-center">
@@ -210,7 +338,7 @@ export default function ReviewBookingPage() {
                     <h2>Review Your Booking Information</h2>
                     <hr></hr>
                     <h3>{tripData?.airlines.join(' + ')}</h3>
-                    <h4>{tripData?.origin} &rarr; {tripData?.destination}</h4>
+                    <h4 className="to-uppercase">{tripData?.origin} &rarr; {tripData?.destination}</h4>
                     <h5>{tripData?.tripType === 'one-way' ? 'One-Way' : 'Round-Trip'} - {tripData?.travellerCount} Traveller{tripData?.travellerCount !== 1 ? 's' : ''}</h5>
                     
                     {tripData?.tripType === 'round-trip' && tripData?.flights.length > 1 ? (
@@ -274,7 +402,11 @@ export default function ReviewBookingPage() {
                         return (
                             <div className="trip-price">
                                 {discount > 0 && <h5>Points Discount: -${discount.toFixed(2)}</h5>}
-                                <h4>Total Price: ${finalPrice.toFixed(2)}</h4>
+                                <hr></hr>
+                                <h4>Pre-tax Price: ${(finalPrice).toFixed(2)}</h4>
+                                <h5>Added Tax: +${(finalPrice*0.13).toFixed(2)}</h5>
+                                <hr></hr>
+                                <h4>Total Price: ${(finalPrice*1.13).toFixed(2)}</h4>
                                 <p>You will earn {pointsEarned.toLocaleString()} loyalty points from this booking.</p>
                             </div>
                         );
@@ -282,20 +414,11 @@ export default function ReviewBookingPage() {
 
                     <hr></hr>
 
-                    <h5>Select payment method</h5>
-                    <div className="payment-method-input">
-                        <select>
-                            <option>Credit Card</option>
-                            <option>Debit Card</option>
-                            <option>PayPal</option>
-                        </select>
-                    </div>
-
-                    <br></br>
-
-                    <div className="checkout-button" onClick={checkout}>
-                        <button>Checkout</button>
-                    </div>
+                    {clientSecret && (
+                        <Elements options={options} stripe={stripePromise}>
+                            <CheckoutForm />
+                        </Elements>
+                     )}
 
                 </div>
             </div>
