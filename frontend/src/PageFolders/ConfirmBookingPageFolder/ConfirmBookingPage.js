@@ -152,7 +152,7 @@ export default function ConfirmBookingPage() {
 
                     {bookingSummary && (
                         <div className="trip-price">
-                            <h4>Total Paid: ${Number(bookingSummary.finalPrice).toFixed(2)}</h4>
+                            <h4>Total Paid: ${Number(bookingSummary.finalPrice*1.13).toFixed(2)}</h4>
                             {bookingSummary.pointsRedeemed > 0 && (
                                 <p>You redeemed {bookingSummary.pointsRedeemed.toLocaleString()} points for a ${Number(bookingSummary.discount).toFixed(2)} discount.</p>
                             )}

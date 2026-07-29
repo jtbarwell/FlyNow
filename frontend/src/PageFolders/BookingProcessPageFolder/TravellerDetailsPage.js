@@ -22,7 +22,7 @@ export default function TravellerDetailsPage() {
                 setTripData(parsed);
 
                 const savedTravellers = localStorage.getItem('travellers');
-                if (savedTravellers) {
+                if (savedTravellers && savedTravellers.length === parsed.travellerCount) {
                     setTravellers(JSON.parse(savedTravellers));
                 } else {
                     const blank = [];
@@ -60,10 +60,6 @@ export default function TravellerDetailsPage() {
         if (!validTravellerDetails()) { return; }
         localStorage.setItem('travellers', JSON.stringify(travellers));
         window.location.href = "/seating-baggage-booking";
-    }
-
-    function TravellerDetailsMenu() {
-        
     }
 
     return (

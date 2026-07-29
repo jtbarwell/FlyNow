@@ -550,7 +550,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
   const afterTaxPrice = finalPrice * (1 + taxRate)
 
   // Convert to cents for payment processing
-  const payment = afterTaxPrice * 100 
+  const payment = Math.round(afterTaxPrice * 100) 
 
   // Create payment intent with final price
   const paymentIntent = await stripe.paymentIntents.create({
