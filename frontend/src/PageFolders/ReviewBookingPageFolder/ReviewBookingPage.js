@@ -9,8 +9,6 @@ const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? loadStripe(
 const POINTS_REDEMPTION_INCREMENT = 1000;
 const POINTS_REDEMPTION_VALUE = 25;
 
-const POINTS_REDEMPTION_INCREMENT = 1000;
-const POINTS_REDEMPTION_VALUE = 25;
 
 export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
