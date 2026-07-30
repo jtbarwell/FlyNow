@@ -1241,12 +1241,23 @@ function buildFlightCancellationEmail({ name, flightNumber, airline, origin, des
             <p>Best regards,<br/>FlyNow Team</p>`
     }
 }
+function buildFlightApproachingEmail({ name, flightNumber, airline, origin, destination }) {
+    return {
+    subject: `Your Flight, ${airline} Flight ${flightNumber} from ${origin} to ${destination}, is approaching.`,
+    html: `<p>Hi ${name},</p>
+        <p>Your flight ${flightNumber} is departing soon.</p>
+        <p>Don't forget to arrive at the airport at least 3 hours before takeoff for International, or at least 1 hour before takeoff for Domestic.</p>
+        <p>Have a great flight!<br/>FlyNow Team</p>`
+    }
+}
+
 
 const emailTemplates = {
     testEmail: buildTestEmail,
     resetPasswordEmail: buildResetPasswordEmail,
     bookingConfirmationEmail: buildBookingConfirmationEmail,
-    flightCancellationEmail: buildFlightCancellationEmail
+    flightCancellationEmail: buildFlightCancellationEmail,
+    flightApproachingEmail: buildFlightApproachingEmail
 }
 
 
@@ -1277,5 +1288,70 @@ app.post('/api/send-email', async (req, res) => {
 });
 
 
+// function loop that always runs in background, waiting until midnight each day. Checks when flights are on day+1 and emails users their flight is approaching
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+function checkTimeDiff(futureTimeStr) {
+    const futureTime = new Date(futureTimeStr);
+    const currTime = new Date();
+    const diffInMS = futureTime - currTime;
+
+    // Hour thresholds in MS
+    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+    const fortyEightHoursInMs = 48 * 60 * 60 * 1000;
+    
+    // Check if valid
+    if (diffInMS >= twentyFourHoursInMs && diffInMS < fortyEightHoursInMs) 
+         { return true;  }
+    else { return false; }
+}
+
+
+
+async function flightApproachLoop() {
+
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24,0,0,0);
+    const msUntilMidnight = midnight - now;
+    // await sleep(msUntilMidnight);
+
+    await sleep(10000);
+
+
+    await bdb.read();
+    await fdb.read();
+    await udb.read();
+
+    for (const booking of bdb.data.bookings || []) {
+        if (!booking || !Array.isArray(booking.flights)) { continue; }
+
+        for (const flightInfo of booking.flights) {
+            const flight = fdb.data.flights.find(f => f.flightID === flightInfo.flightID);
+            if (!flight) { continue; }
+            const user = udb.data.users.find(u => u.userID === booking.userID);
+            if (!user) { continue; }
+
+            if (checkTimeDiff(flight.departureTime)) {
+                // email all passengers, flight upcoming
+                const { subject, html } = buildFlightApproachingEmail({
+                    name: user.firstName,
+                    flightNumber: flight.name,
+                    airline: flight.airline,
+                    origin: flight.origin,
+                    destination: flight.destination
+                })
+                await sendNotificationEmail(subject, html, user.email);
+            }
+        }
+    }
+
+    // loop
+    // flightApproachLoop();
+}
+
+
+
+
+flightApproachLoop();
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
