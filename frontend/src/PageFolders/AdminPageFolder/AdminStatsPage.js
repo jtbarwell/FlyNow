@@ -1,20 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 //Placeholder stats until information finalized
 export default function AdminStatsPage() {
+  const [popularRoutes, setPopularRoutes] = useState([]);
+  const [flightsPerTimePeriod, setFlightsPerTimePeriod] = useState(null);
+  const [bookingsPerAirline, setBookingsPerAirline] = useState([]);
+
+  useEffect(() => {
+      fetch('http://localhost:3001/api/admin/flights/stats', {
+        credentials: 'include'
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.valid) {
+            setPopularRoutes(data.body.bookingsPerRoute);
+            setFlightsPerTimePeriod(data.body.flightsPerTimePeriod);
+            setBookingsPerAirline(data.body.bookingsPerAirline);
+          }
+        })
+        .catch((error) => {
+          console.error('Unable to load flight statistics', error);
+        });
+  }, []);
+
   const popular = [
-    { id: 1, title: 'Air Canada 317', route: 'YYZ → LAX', count: 1129 },
-    { id: 2, title: 'Delta Airlines 3815', route: 'YYZ → ORD', count: 1122 },
-    { id: 3, title: 'Air Canada 808', route: 'YKF → YOW', count: 1107 },
-    { id: 4, title: 'WestJet 271', route: 'YOW → YKF', count: 1086 },
-    { id: 5, title: 'Flair Airlines 34567', route: 'YKF → YYZ', count: 1082 },
+    { id: 1, title: popularRoutes[0]?.name, route: `${popularRoutes[0]?.origin} → ${popularRoutes[0]?.destination}`, count: popularRoutes[0]?.count },
+    { id: 2, title: popularRoutes[1]?.name, route: `${popularRoutes[1]?.origin} → ${popularRoutes[1]?.destination}`, count: popularRoutes[1]?.count },
+    { id: 3, title: popularRoutes[2]?.name, route: `${popularRoutes[2]?.origin} → ${popularRoutes[2]?.destination}`, count: popularRoutes[2]?.count },
+    { id: 4, title: popularRoutes[3]?.name, route: `${popularRoutes[3]?.origin} → ${popularRoutes[3]?.destination}`, count: popularRoutes[3]?.count },
+    { id: 5, title: popularRoutes[4]?.name, route: `${popularRoutes[4]?.origin} → ${popularRoutes[4]?.destination}`, count: popularRoutes[4]?.count },
   ];
 
   const byTime = [
-    { id: 'morning', label: 'Morning (5am–11am)', count: 421 },
-    { id: 'afternoon', label: 'Afternoon (11am–5pm)', count: 812 },
-    { id: 'evening', label: 'Evening (5pm–11pm)', count: 536 },
-    { id: 'overnight', label: 'Overnight (11pm–5am)', count: 98 },
+    { id: 'morning', label: 'Morning (5am–12pm)', count: flightsPerTimePeriod?.Morning },
+    { id: 'afternoon', label: 'Afternoon (12pm–5pm)', count: flightsPerTimePeriod?.Afternoon },
+    { id: 'evening', label: 'Evening (5pm–12am)', count: flightsPerTimePeriod?.Evening },
+    { id: 'overnight', label: 'Overnight (12am–5am)', count: flightsPerTimePeriod?.Overnight },
   ];
 
   const FlightRow = ({ f }) => (
@@ -31,6 +52,25 @@ export default function AdminStatsPage() {
       </div>
     </div>
   );
+
+  function BarChart({ data }) {
+    const maxHeight = Math.max(...data.map(d => d.count));
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'flex-end', height: '200px', gap: '15px', padding: '10px', backgroundColor: '#efe8f9', borderRadius: '15px' }}>
+        {data.map((item, index) => {
+          const heightPercent = (item.count / maxHeight) * 100;
+          return (
+            <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+              <span style={{ fontSize: '12px', marginBottom: '5px' }}>{item.count}</span>
+              <div style={{ width: '30px', height: `${heightPercent}%`, backgroundColor: '#7c5fbe', borderRadius: '4px 4px 0 0' }} />
+              <span style={{ fontSize: '12px', marginTop: '5px' }}>{item.airline}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#fff', padding: 20, display: 'flex', justifyContent: 'center' }}>
@@ -57,9 +97,7 @@ export default function AdminStatsPage() {
 
           <div style={{ height: 18 }} />
           <h4 style={{ margin: 0, marginBottom: 12 }}>Bookings By Airline</h4>
-          <div style={{ borderRadius: 12, height: 120, background: '#efe8f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c5fbe' }}>
-            Chart / breakdown placeholder
-          </div>
+          <BarChart data={bookingsPerAirline}></BarChart>
         </div>
       </div>
     </div>

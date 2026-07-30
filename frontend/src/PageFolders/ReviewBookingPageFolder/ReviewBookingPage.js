@@ -9,6 +9,7 @@ const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? loadStripe(
 const POINTS_REDEMPTION_INCREMENT = 1000;
 const POINTS_REDEMPTION_VALUE = 25;
 
+
 export default function ReviewBookingPage() {
     const [tripData, setTripData] = useState(null);
     const [selectedSeats, setSelectedSeats] = useState([]);
@@ -48,8 +49,10 @@ export default function ReviewBookingPage() {
             const savedAdditionalCheckedBags = localStorage.getItem('additionalCheckedBags');
             const parsedAdditionalCheckedBags = savedAdditionalCheckedBags ? parseInt(savedAdditionalCheckedBags) : 0;
 
+            
             const savedAdditionalCheckedBagsReturn = localStorage.getItem('additionalCheckedBagsReturn');
-            const parsedAdditionalCheckedBagsReturn = savedAdditionalCheckedBagsReturn ? parseInt(savedAdditionalCheckedBagsReturn) : 0;
+            const parsedAdditionalCheckedBagsReturn = savedAdditionalCheckedBagsReturn && parsedTripData.tripType === 'round-trip'? parseInt(savedAdditionalCheckedBagsReturn) : 0;
+  
 
             // Update state so UI stays in sync
             if (parsedTripData) setTripData(parsedTripData);
@@ -359,7 +362,7 @@ export default function ReviewBookingPage() {
                     <PriceBreakdown></PriceBreakdown>
 
                     <div className="trip-price">
-                        <h4>Total Price: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
+                        <h4>Subtotal: ${tripData ? calculateTotalPrice(tripData.flights).toFixed(2) : '0.00'}</h4>
                     </div>
 
                     <hr></hr>
@@ -397,8 +400,11 @@ export default function ReviewBookingPage() {
                         return (
                             <div className="trip-price">
                                 {discount > 0 && <h5>Points Discount: -${discount.toFixed(2)}</h5>}
-                                <h5>Added Tax: ${finalPrice.toFixed(2)*0.13}</h5>
-                                <h4>Total Price: ${finalPrice.toFixed(2)*1.13}</h4>
+                                <hr></hr>
+                                <h4>Pre-tax Price: ${(finalPrice).toFixed(2)}</h4>
+                                <h5>Added Tax: +${(finalPrice*0.13).toFixed(2)}</h5>
+                                <hr></hr>
+                                <h4>Total Price: ${(finalPrice*1.13).toFixed(2)}</h4>
                                 <p>You will earn {pointsEarned.toLocaleString()} loyalty points from this booking.</p>
                             </div>
                         );

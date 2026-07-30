@@ -80,6 +80,23 @@ app.get('/api/check-login', (req, res) => {
   return res.json({ loggedIn: false });
 });
 
+// LOYALTY POINTS
+
+app.get('/api/user/points', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not logged in' });
+  await udb.read();
+
+  const user = udb.data.users.find(u => u.userID === req.session.user.userID);
+
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  return res.json({
+
+    points: user.points || 0,
+    redemptionIncrement: POINTS_REDEMPTION_INCREMENT,
+    redemptionValue: POINTS_REDEMPTION_VALUE
+  });
+});
+
 // LOGOUT
 
 app.post('/api/logout', (req, res) => {
@@ -103,6 +120,7 @@ async function signup(email, password, firstName, lastName) {
     password: passwordHash,
     firstName,
     lastName,
+    points: 0,
     bookings: []
   });
   await udb.write();
@@ -218,7 +236,6 @@ app.post('/api/admin/login', async (req, res) => {
   }
 
   const admin = await getAdmin(email, password);
-  console.log("admin: " + JSON.stringify(admin));
   if (admin) {
     req.session.admin = { email };
     return res.json({ valid: true, admin: { fullName: admin.fullName || admin.email, email: admin.email } });
@@ -442,6 +459,133 @@ app.get('/api/admin/flights/:flightID/passengers', requireAdmin, async (req, res
   return res.json({ valid: true, message: 'Passenger list retrieved successfully', body: {passengerList} });
 });
 
+// ADMIN STATS PAGE
+
+function compareClockTimes(date1, date2) {
+  // Normalize both times to the exact same calendar day
+  const time1 = new Date(2000, 0, 1, date1.getHours(), date1.getMinutes(), date1.getSeconds());
+  const time2 = new Date(2000, 0, 1, date2.getHours(), date2.getMinutes(), date2.getSeconds());
+
+  return time1.getTime() - time2.getTime(); 
+  // Returns negative if date1 is earlier in the day, 0 if identical, positive if later
+}
+
+function getTimePeriod(time) {
+  const early = new Date('2026-01-01T05:00:00');
+  const mid = new Date('2026-01-01T12:00:00');
+  const late = new Date('2026-01-01T17:00:00');
+
+  const t = new Date(time);
+  
+  if (compareClockTimes(t, late) > 0) {
+    return "Evening";
+  } else if (compareClockTimes(t, mid) > 0) {
+    return "Afternoon";
+  } else if (compareClockTimes(t, early) > 0) {
+    return "Morning";
+  }
+  return "Overnight";
+}
+
+function handleTimePeriodDifference(tp1, tp2) {
+  const extraTimes = []
+  if ((tp1 === "Overnight" && (tp2 === "Afternoon" || tp2 === "Evening")) || (tp1 === "Afternoon" && tp2 === "Evening")) {
+    extraTimes.push("Morning");
+  } 
+  if ((tp1 === "Morning" && (tp2 === "Evening" || tp2 === "Overnight")) || (tp1 === "Evening" && tp2 === "Overnight")) {
+    extraTimes.push("Afternoon")
+  }
+  if ((tp1 === "Afternoon" && (tp2 === "Overnight" || tp2 === "Morning")) || (tp1 === "Overnight" && tp2 === "Morning")) {
+    extraTimes.push("Evening")
+  }
+  if ((tp1 === "Evening" && (tp2 === "Morning" || tp2 === "Afternoon")) || (tp1 === "Morning" && tp2 === "Afternoon")) {
+    extraTimes.push("Overnight")
+  }
+
+  return extraTimes;
+}
+
+app.get('/api/admin/flights/stats', requireAdmin, async (req, res) => {
+  await fdb.read();
+  await bdb.read();
+  const bookings = bdb.data.bookings.filter(b => !b.isCancelled);
+  const flights = fdb.data.flights.filter(f => !f.isCancelled);
+
+  const bookingsPerRoute = [];
+
+  const flightsPerTimePeriod = {
+    Overnight: 0,
+    Morning: 0,
+    Afternoon: 0,
+    Evening: 0
+  };
+
+  const bookingsPerAirline = []; // {airline, count}
+
+  // Get bookings per flight (popular flights)
+  for (const booking of bookings) {
+    for (const flightInfo of booking.flights) {
+      if (!flightInfo.isCancelled) {
+        
+        const flight = flights.find(f => f.flightID === flightInfo.flightID);
+
+        for (const seat of flightInfo.seats) {
+          if (!seat) { continue; }
+
+          const routeData = bookingsPerRoute.find(f => f.name === flight.name)
+          if (routeData) {
+            routeData.count += 1;
+          } else {
+            bookingsPerRoute.push({
+              name: flight.name, 
+              origin: flight.origin,
+              destination: flight.destination, 
+              count: 1
+            })
+          }
+          
+          const airlineData = bookingsPerAirline.find(f => f.airline === flight.airline)
+          if (airlineData) {
+            airlineData.count += 1;
+          } else {
+            bookingsPerAirline.push({airline: flight.airline, count: 1})
+          }
+          
+        }
+      }
+    }
+  }
+
+  bookingsPerRoute.sort((a, b) => b.count - a.count);
+
+  // Get flights per time period
+  for (const flight of flights) {
+    const t1 = flight.departureTime
+    const t2 = flight.arrivalTime
+    const tp1 = getTimePeriod(t1)
+    const tp2 = getTimePeriod(t2)
+    flightsPerTimePeriod[tp1] += 1;
+    if (tp2 != tp1) { 
+      flightsPerTimePeriod[tp2] += 1;
+      const extraTimes = handleTimePeriodDifference(tp1, tp2);
+      for (const period of extraTimes) {
+        flightsPerTimePeriod[period] += 1;
+      }
+    }
+  }
+  
+  return res.json({ 
+    valid: true, 
+    message: 'Statistics retrieved successfully', 
+    body: {
+      bookingsPerRoute,
+      flightsPerTimePeriod,
+      bookingsPerAirline
+    } 
+  });
+});
+
+
 // SEARCH
 
 function search(origin, destination, departure_date) {
@@ -623,7 +767,6 @@ async function bookingConfirm(userID, tripType, travellerCount, bookedFlights, a
     }))
   }));
   await bdb.write();
-
 
   const user = udb.data.users[userID];
   user.bookings.push(booking.bookingID);
@@ -858,6 +1001,14 @@ app.post('/api/cancel-booking', async (req, res) => {
       }
     }
   }
+
+  const user = udb.data.users.find(u => u.userID === userID);
+  if (user) {
+    const pointsEarned = booking.pointsEarned || 0;
+    const pointsRedeemed = booking.pointsRedeemed || 0;
+    user.points = Math.max(0, (user.points || 0) - pointsEarned + pointsRedeemed);
+  }
+
   booking.isCancelled = booking.flights.every(f => f.isCancelled);
 
   let refund = 0;
@@ -882,7 +1033,8 @@ app.post('/api/cancel-booking', async (req, res) => {
     cancelledBookingID: [booking.bookingID],
     cancelledFlightIDs: legsCancelled.map(f => f.flightID),
     bookingFullyCancelled: booking.isCancelled,
-    refund: refund
+    refund: refund,
+    pointsBalance: user ? user.points : undefined
   });
 });
 
@@ -908,6 +1060,11 @@ app.get('/api/my-trips', async (req, res) => {
         tripType: booking.tripType ?? 'one-way',
         additionalCheckedBags: booking.additionalCheckedBags ?? 0,
         travellerCount: booking.travellerCount ?? 1,
+        totalPrice: booking.totalPrice,
+        discount: booking.discount ?? 0,
+        pointsRedeemed: booking.pointsRedeemed ?? 0,
+        finalPrice: booking.finalPrice,
+        pointsEarned: booking.pointsEarned ?? 0,
         travellers: booking.travellers ?? [],
         flights: [],
         isCancelled: true,

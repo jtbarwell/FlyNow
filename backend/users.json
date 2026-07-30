@@ -6,7 +6,7 @@
       "password": "$2b$10$jey09n1bcgAe/2YjcXYnfe30hDVT3m184H7niPiMzBPNJvFZ564qy",
       "firstName": "John",
       "lastName": "Doe",
-      "points": 0,
+      "points": 15245,
       "bookings": [
         0,
         3,
@@ -52,8 +52,7 @@
       "lastName": "Barwell",
       "points": 0,
       "bookings": [
-        8,
-        9
+        10
       ]
     },
     {
