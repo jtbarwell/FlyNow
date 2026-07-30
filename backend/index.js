@@ -157,14 +157,9 @@ app.post('/api/request-password-reset', async(req, res) => {
 
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
 
-    await sendNotificationEmail(
-        'Reset your FlyNow password',
-        `<p>Hi ${user.firstName},</p>
-            <p>Click the link below to reset your password. This link expires in 5 minutes.</p>
-            <p><a href="${resetLink}">${resetLink}</a></p>
-            <p>If you didn't request this, you can safely ignore this email.</p>`,
-        email
-    );
+    const { subject, html } = buildResetPasswordEmail({ name: user.firstName, resetLink });
+    await sendNotificationEmail( subject, html, email );
+
 
     return res.json({ success: true, message: 'If the provided email exists, a reset link has been sent. The link expires in 5 minutes.'})
 });
@@ -341,6 +336,10 @@ app.post('/api/admin/flights', requireAdmin, async (req, res) => {
     return res.status(404).json({ valid: false, message: 'Flight not found' });
   }
 
+  const oldFlightNumber = fdb.data.flights[index].name;
+  const oldOrigin = fdb.data.flights[index].origin;
+  const oldDestination = fdb.data.flights[index].destination;
+
   fdb.data.flights[index] = {
     ...fdb.data.flights[index],
     name,
@@ -356,6 +355,36 @@ app.post('/api/admin/flights', requireAdmin, async (req, res) => {
   };
 
   await fdb.write();
+
+
+  // email all passengers about flight changes
+  await bdb.read();
+  await udb.read();
+  await fdb.read();
+  const bookings = bdb.data.bookings.filter(b => !b.isCancelled && b.flights.find(f => f.flightID === flightID));
+  // loop through bookings and send email to each passenger
+  for (const booking of bookings) {
+    const user = udb.data.users.find(u => u.userID === booking.userID);
+    if (!user) { continue; }
+
+
+    const { subject, html } = buildFlightChangeEmail({
+        name: user.firstName,
+        oldFlightNumber: oldFlightNumber,
+        oldOrigin: oldOrigin,
+        oldDestination: oldDestination,
+        newFlightNumber: fdb.data.flights[index].name,
+        airline: fdb.data.flights[index].airline,
+        newOrigin: fdb.data.flights[index].origin,
+        newDestination: fdb.data.flights[index].destination,
+        newDepartureTime: fdb.data.flights[index].departureTime,
+        newArrivalTime: fdb.data.flights[index].arrivalTime
+    });
+    await sendNotificationEmail(subject, html, user.email);
+  }
+
+
+  
   return res.json({ valid: true, message: 'Flight updated successfully' });
 });
 
@@ -435,13 +464,15 @@ app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
     const user = udb.data.users.find(u => u.userID === booking.userID);
     if (!user) { continue; }
 
-    await sendNotificationEmail(
-      'Flight Cancellation Notice',
-      `<p>Hi ${user.firstName},</p>
-       <p>We regret to inform you that your flight, ${fdb.data.flights[index].name}, has been cancelled.</p>
-       <p>Thank you for your understanding.</p>`,
-        user.email
-    );
+
+    const { subject, html } = buildFlightCancellationEmail({
+        name: user.firstName,
+        flightNumber: fdb.data.flights[index].name,
+        airline: fdb.data.flights[index].airline,
+        origin: fdb.data.flights[index].origin,
+        destination: fdb.data.flights[index].destination
+    });
+    await sendNotificationEmail(subject, html, user.email);
   }
 
   // mark all bookings for this flight as cancelled
@@ -1159,11 +1190,13 @@ function buildTestEmail({ name }) {
     html: `<p>This is a test. Please do not reply to this email.</p>`,
   };
 }
-function buildResetPasswordEmail({ name }) {
+function buildResetPasswordEmail({ name, resetLink }) {
     return {
         subject: `New Password Reset Request`,
-        html:  `<h2>${name}, a password reset request was created from your account</h2>
-                <p>If this was not you, someone might be using your account. <a href="https://youtu.be/dQw4w9WgXcQ?si=U7rf-khwn84y1GOB">Click this to sign out on all devices<a></p>`
+        html:  `<p>Hi ${user.firstName},</p>
+            <p>Click the link below to reset your password. This link expires in 5 minutes.</p>
+            <p><a href="${resetLink}">${resetLink}</a></p>
+            <p>If you didn't request this, you can safely ignore this email.</p>`
     }
 }
 function buildBookingConfirmationEmail({ name, bookingID, flightNumber, airline, origin, destination, tripType, travellerCount, bookedFlights, additionalCheckedBags }) {
@@ -1181,11 +1214,39 @@ function buildBookingConfirmationEmail({ name, bookingID, flightNumber, airline,
             <p>Best regards,<br/>FlyNow Team</p>`
     }
 }
+function buildFlightChangeEmail({ name, oldFlightNumber, oldOrigin, oldDestination, newFlightNumber, airline, newOrigin, newDestination, newDepartureTime, newArrivalTime }) {
+    return {
+        subject: `Flight Details Updated - ${airline} Flight ${oldFlightNumber} from ${oldOrigin} to ${oldDestination}`,
+        html:`<p>Hi ${name},</p>
+            <p>Your booking of flight ${newFlightNumber} has been updated. You can find the new details below.</p>
+            <p>Booking Details:</p>
+            <ul>
+                <li>Airline: ${airline}</li>
+                <li>Flight: ${newFlightNumber}</li>
+                <li>Origin: ${newOrigin}</li>
+                <li>Destination: ${newDestination}</li>
+                <li>Departure: ${newDepartureTime}</li>
+                <li>Arrival: ${newArrivalTime}</li>
+            </ul>
+            <p>We apologize for the inconvenience, and hope you have a pleasant journey!</p>
+            <p>Best regards,<br/>FlyNow Team</p>`
+    }
+}
+function buildFlightCancellationEmail({ name, flightNumber, airline, origin, destination }) {
+    return {
+        subject: `Flight Cancellation - ${airline} Flight ${flightNumber} from ${origin} to ${destination}`,
+        html: `<p>Hi ${name},</p>
+            <p>Your flight ${flightNumber} has been cancelled.</p>
+            <p>We apologize for any inconvenience this may cause.</p>
+            <p>Best regards,<br/>FlyNow Team</p>`
+    }
+}
 
 const emailTemplates = {
     testEmail: buildTestEmail,
     resetPasswordEmail: buildResetPasswordEmail,
-    bookingConfirmationEmail: buildBookingConfirmationEmail
+    bookingConfirmationEmail: buildBookingConfirmationEmail,
+    flightCancellationEmail: buildFlightCancellationEmail
 }
 
 
