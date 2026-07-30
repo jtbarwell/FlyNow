@@ -68,7 +68,7 @@ app.post('/api/login', async (req, res) => {
   const user = await login(email, password);
   if (user) {
     req.session.user = user;
-    return res.json({ valid: true, firstName: user.firstName });
+    return res.json({ valid: true, firstName: user.firstName, lastName: user.lastName });
   }
   return res.json({ valid: false });
 });
