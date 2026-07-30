@@ -550,7 +550,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
   const afterTaxPrice = finalPrice * (1 + taxRate)
 
   // Convert to cents for payment processing
-  const payment = afterTaxPrice * 100 
+  const payment = Math.round(afterTaxPrice * 100);
 
   // Create payment intent with final price
   const paymentIntent = await stripe.paymentIntents.create({
@@ -645,6 +645,7 @@ app.post('/api/bookingConfirm', async (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
+
   // Calculate earned Loyalty Points
   const totalPrice = await calculateBookingPrice(bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn);
   const redemption = resolvePointsRedemption(totalPrice, pointsRedeemed || 0, user.points || 0);
@@ -668,6 +669,47 @@ app.post('/api/bookingConfirm', async (req, res) => {
     finalPrice,
     pointsEarned
   );
+
+
+
+// loop confirmation email if roundtrip, otherwise just send one email
+const loopCount = tripType === 'one-way' ? 1 : 2;
+
+for (let i = 0; i < loopCount; i++) {
+  // For each leg, pick the corresponding booked flight (0 = outbound, 1 = return)
+  const legIndex = i;
+  if (legIndex >= bookedFlights.length) continue;
+
+  const bookedLeg = bookedFlights[legIndex];
+  const flight = fdb.data.flights.find(fl => fl.flightID === bookedLeg.flightID) || {};
+
+  const bookedFlightAirline = flight.airline ?? bookedLeg.flightID;
+  const bookedFlightNames = flight.name ?? bookedLeg.flightID;
+  const bookedFlightOrigin = flight.origin ?? bookedLeg.flightID;
+  const bookedFlightDestination = flight.destination ?? bookedLeg.flightID;
+
+  const { subject: confirmationSubject, html: confirmationHtml } =
+    buildBookingConfirmationEmail({
+      name: user.firstName,
+      bookingID: booking.bookingID,
+      flightNumber: bookedFlightNames,
+      airline: bookedFlightAirline,
+      origin: bookedFlightOrigin,
+      destination: bookedFlightDestination,
+      tripType,
+      travellerCount,
+      bookedFlights: [bookedLeg],
+      additionalCheckedBags
+    });
+
+  await sendNotificationEmail(
+    confirmationSubject,
+    confirmationHtml,
+    user.email
+  );
+}
+
+
 
   return res.json({ booking, pointsBalance: udb.data.users[userID].points });
 });
@@ -937,10 +979,26 @@ function buildResetPasswordEmail({ name }) {
                 <p>If this was not you, someone might be using your account. <a href="https://youtu.be/dQw4w9WgXcQ?si=U7rf-khwn84y1GOB">Click this to sign out on all devices<a></p>`
     }
 }
+function buildBookingConfirmationEmail({ name, bookingID, flightNumber, airline, origin, destination, tripType, travellerCount, bookedFlights, additionalCheckedBags }) {
+    return {
+        subject: `Booking Confirmation - ${airline} Flight ${flightNumber} from ${origin} to ${destination}`,
+        html:`<p>Hi ${name},</p>
+            <p>Your booking of flight ${flightNumber} has been confirmed. Thank you for choosing FlyNow!</p>
+            <p>Booking Details:</p>
+            <ul>
+            <li>Trip Type: ${tripType}</li>
+            <li>Number of Travellers: ${travellerCount}</li>
+            <li>Additional Checked Bags: ${additionalCheckedBags}</li>
+            </ul>
+            <p>We hope you have a pleasant journey!</p>
+            <p>Best regards,<br/>FlyNow Team</p>`
+    }
+}
 
 const emailTemplates = {
     testEmail: buildTestEmail,
-    resetPasswordEmail: buildResetPasswordEmail
+    resetPasswordEmail: buildResetPasswordEmail,
+    bookingConfirmationEmail: buildBookingConfirmationEmail
 }
 
 
