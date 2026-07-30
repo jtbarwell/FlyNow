@@ -331,6 +331,7 @@ app.get('/api/admin/flights', requireAdmin, async (req, res) => {
   return res.json({ valid: true, flights: fdb.data.flights.filter(f => f.isCancelled === null || !f.isCancelled) });
 });
 
+// save changes to flight details
 app.post('/api/admin/flights', requireAdmin, async (req, res) => {
   const { flightID, name, origin, destination, departureTime, arrivalTime, price } = req.body;
   await fdb.read();
@@ -410,6 +411,7 @@ app.post('/api/admin/flights/upload', requireAdmin, async (req, res) => {
   return res.json({ valid: true, message: 'Flights created successfully', flights });
 });
 
+// cancel flight (soft delete)
 app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
   await fdb.read();
   const flightID = Number(req.params.flightID);
@@ -424,6 +426,34 @@ app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
     isCancelled: true
   };
 
+  // email all passengers booked on this flight
+  await bdb.read();
+  await udb.read();
+  const bookings = bdb.data.bookings.filter(b => !b.isCancelled && b.flights.find(f => f.flightID === flightID));
+  // loop through bookings and send email to each passenger
+  for (const booking of bookings) {
+    const user = udb.data.users.find(u => u.userID === booking.userID);
+    if (!user) { continue; }
+
+    await sendNotificationEmail(
+      'Flight Cancellation Notice',
+      `<p>Hi ${user.firstName},</p>
+       <p>We regret to inform you that your flight, ${fdb.data.flights[index].name}, has been cancelled.</p>
+       <p>Thank you for your understanding.</p>`,
+        user.email
+    );
+  }
+
+  // mark all bookings for this flight as cancelled
+  for (const booking of bookings) {
+    for (const flightInfo of booking.flights) {
+      if (flightInfo.flightID === flightID) {
+        flightInfo.isCancelled = true;
+      }
+    }
+  }
+
+  await bdb.write();
   await fdb.write();
   return res.json({ valid: true, message: 'Flight cancelled successfully' });
 });
