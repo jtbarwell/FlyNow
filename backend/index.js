@@ -68,7 +68,7 @@ app.post('/api/login', async (req, res) => {
   const user = await login(email, password);
   if (user) {
     req.session.user = user;
-    return res.json({ valid: true, firstName: user.firstName });
+    return res.json({ valid: true, firstName: user.firstName, lastName: user.lastName });
   }
   return res.json({ valid: false });
 });
@@ -157,14 +157,9 @@ app.post('/api/request-password-reset', async(req, res) => {
 
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
 
-    await sendNotificationEmail(
-        'Reset your FlyNow password',
-        `<p>Hi ${user.firstName},</p>
-            <p>Click the link below to reset your password. This link expires in 5 minutes.</p>
-            <p><a href="${resetLink}">${resetLink}</a></p>
-            <p>If you didn't request this, you can safely ignore this email.</p>`,
-        email
-    );
+    const { subject, html } = buildResetPasswordEmail({ name: user.firstName, resetLink });
+    await sendNotificationEmail( subject, html, email );
+
 
     return res.json({ success: true, message: 'If the provided email exists, a reset link has been sent. The link expires in 5 minutes.'})
 });
@@ -331,6 +326,7 @@ app.get('/api/admin/flights', requireAdmin, async (req, res) => {
   return res.json({ valid: true, flights: fdb.data.flights.filter(f => f.isCancelled === null || !f.isCancelled) });
 });
 
+// save changes to flight details
 app.post('/api/admin/flights', requireAdmin, async (req, res) => {
   const { flightID, name, origin, destination, departureTime, arrivalTime, price } = req.body;
   await fdb.read();
@@ -339,6 +335,10 @@ app.post('/api/admin/flights', requireAdmin, async (req, res) => {
   if (index === -1) {
     return res.status(404).json({ valid: false, message: 'Flight not found' });
   }
+
+  const oldFlightNumber = fdb.data.flights[index].name;
+  const oldOrigin = fdb.data.flights[index].origin;
+  const oldDestination = fdb.data.flights[index].destination;
 
   fdb.data.flights[index] = {
     ...fdb.data.flights[index],
@@ -355,6 +355,36 @@ app.post('/api/admin/flights', requireAdmin, async (req, res) => {
   };
 
   await fdb.write();
+
+
+  // email all passengers about flight changes
+  await bdb.read();
+  await udb.read();
+  await fdb.read();
+  const bookings = bdb.data.bookings.filter(b => !b.isCancelled && b.flights.find(f => f.flightID === flightID));
+  // loop through bookings and send email to each passenger
+  for (const booking of bookings) {
+    const user = udb.data.users.find(u => u.userID === booking.userID);
+    if (!user) { continue; }
+
+
+    const { subject, html } = buildFlightChangeEmail({
+        name: user.firstName,
+        oldFlightNumber: oldFlightNumber,
+        oldOrigin: oldOrigin,
+        oldDestination: oldDestination,
+        newFlightNumber: fdb.data.flights[index].name,
+        airline: fdb.data.flights[index].airline,
+        newOrigin: fdb.data.flights[index].origin,
+        newDestination: fdb.data.flights[index].destination,
+        newDepartureTime: fdb.data.flights[index].departureTime,
+        newArrivalTime: fdb.data.flights[index].arrivalTime
+    });
+    await sendNotificationEmail(subject, html, user.email);
+  }
+
+
+  
   return res.json({ valid: true, message: 'Flight updated successfully' });
 });
 
@@ -410,6 +440,7 @@ app.post('/api/admin/flights/upload', requireAdmin, async (req, res) => {
   return res.json({ valid: true, message: 'Flights created successfully', flights });
 });
 
+// cancel flight (soft delete)
 app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
   await fdb.read();
   const flightID = Number(req.params.flightID);
@@ -424,6 +455,36 @@ app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
     isCancelled: true
   };
 
+  // email all passengers booked on this flight
+  await bdb.read();
+  await udb.read();
+  const bookings = bdb.data.bookings.filter(b => !b.isCancelled && b.flights.find(f => f.flightID === flightID));
+  // loop through bookings and send email to each passenger
+  for (const booking of bookings) {
+    const user = udb.data.users.find(u => u.userID === booking.userID);
+    if (!user) { continue; }
+
+
+    const { subject, html } = buildFlightCancellationEmail({
+        name: user.firstName,
+        flightNumber: fdb.data.flights[index].name,
+        airline: fdb.data.flights[index].airline,
+        origin: fdb.data.flights[index].origin,
+        destination: fdb.data.flights[index].destination
+    });
+    await sendNotificationEmail(subject, html, user.email);
+  }
+
+  // mark all bookings for this flight as cancelled
+  for (const booking of bookings) {
+    for (const flightInfo of booking.flights) {
+      if (flightInfo.flightID === flightID) {
+        flightInfo.isCancelled = true;
+      }
+    }
+  }
+
+  await bdb.write();
   await fdb.write();
   return res.json({ valid: true, message: 'Flight cancelled successfully' });
 });
@@ -694,7 +755,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
   const afterTaxPrice = finalPrice * (1 + taxRate)
 
   // Convert to cents for payment processing
-  const payment = Math.round(afterTaxPrice * 100) 
+  const payment = Math.round(afterTaxPrice * 100);
 
   // Create payment intent with final price
   const paymentIntent = await stripe.paymentIntents.create({
@@ -788,6 +849,7 @@ app.post('/api/bookingConfirm', async (req, res) => {
     return res.status(404).json({ error: 'User not found' });
   }
 
+
   // Calculate earned Loyalty Points
   const totalPrice = await calculateBookingPrice(bookedFlights, additionalCheckedBags, additionalCheckedBagsReturn);
   const redemption = resolvePointsRedemption(totalPrice, pointsRedeemed || 0, user.points || 0);
@@ -811,6 +873,47 @@ app.post('/api/bookingConfirm', async (req, res) => {
     finalPrice,
     pointsEarned
   );
+
+
+
+// loop confirmation email if roundtrip, otherwise just send one email
+const loopCount = tripType === 'one-way' ? 1 : 2;
+
+for (let i = 0; i < loopCount; i++) {
+  // For each leg, pick the corresponding booked flight (0 = outbound, 1 = return)
+  const legIndex = i;
+  if (legIndex >= bookedFlights.length) continue;
+
+  const bookedLeg = bookedFlights[legIndex];
+  const flight = fdb.data.flights.find(fl => fl.flightID === bookedLeg.flightID) || {};
+
+  const bookedFlightAirline = flight.airline ?? bookedLeg.flightID;
+  const bookedFlightNames = flight.name ?? bookedLeg.flightID;
+  const bookedFlightOrigin = flight.origin ?? bookedLeg.flightID;
+  const bookedFlightDestination = flight.destination ?? bookedLeg.flightID;
+
+  const { subject: confirmationSubject, html: confirmationHtml } =
+    buildBookingConfirmationEmail({
+      name: user.firstName,
+      bookingID: booking.bookingID,
+      flightNumber: bookedFlightNames,
+      airline: bookedFlightAirline,
+      origin: bookedFlightOrigin,
+      destination: bookedFlightDestination,
+      tripType,
+      travellerCount,
+      bookedFlights: [bookedLeg],
+      additionalCheckedBags
+    });
+
+  await sendNotificationEmail(
+    confirmationSubject,
+    confirmationHtml,
+    user.email
+  );
+}
+
+
 
   return res.json({ booking, pointsBalance: udb.data.users[userID].points });
 });
@@ -1087,17 +1190,74 @@ function buildTestEmail({ name }) {
     html: `<p>This is a test. Please do not reply to this email.</p>`,
   };
 }
-function buildResetPasswordEmail({ name }) {
+function buildResetPasswordEmail({ name, resetLink }) {
     return {
         subject: `New Password Reset Request`,
-        html:  `<h2>${name}, a password reset request was created from your account</h2>
-                <p>If this was not you, someone might be using your account. <a href="https://youtu.be/dQw4w9WgXcQ?si=U7rf-khwn84y1GOB">Click this to sign out on all devices<a></p>`
+        html:  `<p>Hi ${user.firstName},</p>
+            <p>Click the link below to reset your password. This link expires in 5 minutes.</p>
+            <p><a href="${resetLink}">${resetLink}</a></p>
+            <p>If you didn't request this, you can safely ignore this email.</p>`
+    }
+}
+function buildBookingConfirmationEmail({ name, bookingID, flightNumber, airline, origin, destination, tripType, travellerCount, bookedFlights, additionalCheckedBags }) {
+    return {
+        subject: `Booking Confirmation - ${airline} Flight ${flightNumber} from ${origin} to ${destination}`,
+        html:`<p>Hi ${name},</p>
+            <p>Your booking of flight ${flightNumber} has been confirmed. Thank you for choosing FlyNow!</p>
+            <p>Booking Details:</p>
+            <ul>
+            <li>Trip Type: ${tripType}</li>
+            <li>Number of Travellers: ${travellerCount}</li>
+            <li>Additional Checked Bags: ${additionalCheckedBags}</li>
+            </ul>
+            <p>We hope you have a pleasant journey!</p>
+            <p>Best regards,<br/>FlyNow Team</p>`
+    }
+}
+function buildFlightChangeEmail({ name, oldFlightNumber, oldOrigin, oldDestination, newFlightNumber, airline, newOrigin, newDestination, newDepartureTime, newArrivalTime }) {
+    return {
+        subject: `Flight Details Updated - ${airline} Flight ${oldFlightNumber} from ${oldOrigin} to ${oldDestination}`,
+        html:`<p>Hi ${name},</p>
+            <p>Your booking of flight ${newFlightNumber} has been updated. You can find the new details below.</p>
+            <p>Booking Details:</p>
+            <ul>
+                <li>Airline: ${airline}</li>
+                <li>Flight: ${newFlightNumber}</li>
+                <li>Origin: ${newOrigin}</li>
+                <li>Destination: ${newDestination}</li>
+                <li>Departure: ${newDepartureTime}</li>
+                <li>Arrival: ${newArrivalTime}</li>
+            </ul>
+            <p>We apologize for the inconvenience, and hope you have a pleasant journey!</p>
+            <p>Best regards,<br/>FlyNow Team</p>`
+    }
+}
+function buildFlightCancellationEmail({ name, flightNumber, airline, origin, destination }) {
+    return {
+        subject: `Flight Cancellation - ${airline} Flight ${flightNumber} from ${origin} to ${destination}`,
+        html: `<p>Hi ${name},</p>
+            <p>Your flight ${flightNumber} has been cancelled.</p>
+            <p>We apologize for any inconvenience this may cause.</p>
+            <p>Best regards,<br/>FlyNow Team</p>`
+    }
+}
+function buildFlightApproachingEmail({ name, flightNumber, airline, origin, destination }) {
+    return {
+    subject: `Your Flight, ${airline} Flight ${flightNumber} from ${origin} to ${destination}, is approaching.`,
+    html: `<p>Hi ${name},</p>
+        <p>Your flight ${flightNumber} is departing soon.</p>
+        <p>Don't forget to arrive at the airport at least 3 hours before takeoff for International, or at least 1 hour before takeoff for Domestic.</p>
+        <p>Have a great flight!<br/>FlyNow Team</p>`
     }
 }
 
+
 const emailTemplates = {
     testEmail: buildTestEmail,
-    resetPasswordEmail: buildResetPasswordEmail
+    resetPasswordEmail: buildResetPasswordEmail,
+    bookingConfirmationEmail: buildBookingConfirmationEmail,
+    flightCancellationEmail: buildFlightCancellationEmail,
+    flightApproachingEmail: buildFlightApproachingEmail
 }
 
 
@@ -1128,5 +1288,70 @@ app.post('/api/send-email', async (req, res) => {
 });
 
 
+// function loop that always runs in background, waiting until midnight each day. Checks when flights are on day+1 and emails users their flight is approaching
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+function checkTimeDiff(futureTimeStr) {
+    const futureTime = new Date(futureTimeStr);
+    const currTime = new Date();
+    const diffInMS = futureTime - currTime;
+
+    // Hour thresholds in MS
+    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+    const fortyEightHoursInMs = 48 * 60 * 60 * 1000;
+    
+    // Check if valid
+    if (diffInMS >= twentyFourHoursInMs && diffInMS < fortyEightHoursInMs) 
+         { return true;  }
+    else { return false; }
+}
+
+
+
+async function flightApproachLoop() {
+
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24,0,0,0);
+    const msUntilMidnight = midnight - now;
+    // await sleep(msUntilMidnight);
+
+    await sleep(10000);
+
+
+    await bdb.read();
+    await fdb.read();
+    await udb.read();
+
+    for (const booking of bdb.data.bookings || []) {
+        if (!booking || !Array.isArray(booking.flights)) { continue; }
+
+        for (const flightInfo of booking.flights) {
+            const flight = fdb.data.flights.find(f => f.flightID === flightInfo.flightID);
+            if (!flight) { continue; }
+            const user = udb.data.users.find(u => u.userID === booking.userID);
+            if (!user) { continue; }
+
+            if (checkTimeDiff(flight.departureTime)) {
+                // email all passengers, flight upcoming
+                const { subject, html } = buildFlightApproachingEmail({
+                    name: user.firstName,
+                    flightNumber: flight.name,
+                    airline: flight.airline,
+                    origin: flight.origin,
+                    destination: flight.destination
+                })
+                await sendNotificationEmail(subject, html, user.email);
+            }
+        }
+    }
+
+    // loop
+    // flightApproachLoop();
+}
+
+
+
+
+flightApproachLoop();
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

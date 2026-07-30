@@ -23,6 +23,12 @@
       "email": "dylanbaker5353@gmail.com",
       "fullName": "Dylan Baker",
       "password": "$2b$10$CMbC9Ic6HfXaaOJK2nHb7eBIGmj/zQ26AI7KsyccD53H6bIaM2BCC"
+    },
+    {
+      "adminID": 4,
+      "email": "jtbarwell@gmail.com",
+      "fullName": "Josh Barwell",
+      "password": "$2b$10$tBDeuWdg30i8fW4hM.kIHu6olr4i5H2YzcLkDIjJHmwp/qd66Vwre"
     }
   ]
 }
