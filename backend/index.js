@@ -380,7 +380,7 @@ app.post('/api/admin/flights', requireAdmin, async (req, res) => {
         newDepartureTime: fdb.data.flights[index].departureTime,
         newArrivalTime: fdb.data.flights[index].arrivalTime
     });
-    await sendNotificationEmail(subject, html, user.email);
+    sendNotificationEmail(subject, html, user.email);
   }
 
 
@@ -472,7 +472,7 @@ app.delete('/api/admin/flights/:flightID', requireAdmin, async (req, res) => {
         origin: fdb.data.flights[index].origin,
         destination: fdb.data.flights[index].destination
     });
-    await sendNotificationEmail(subject, html, user.email);
+    sendNotificationEmail(subject, html, user.email);
   }
 
   // mark all bookings for this flight as cancelled
@@ -906,7 +906,7 @@ for (let i = 0; i < loopCount; i++) {
       additionalCheckedBags
     });
 
-  await sendNotificationEmail(
+  sendNotificationEmail(
     confirmationSubject,
     confirmationHtml,
     user.email
